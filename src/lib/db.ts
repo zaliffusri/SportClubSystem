@@ -67,6 +67,14 @@ function generateId(): string {
   return Date.now().toString(36) + Math.random().toString(36).slice(2);
 }
 
+let initPromise: Promise<void> | null = null;
+
+/** Ensures tables exist (runs initDb once). Call before any query that needs the DB. */
+export async function ensureDb(): Promise<void> {
+  if (!initPromise) initPromise = initDb();
+  await initPromise;
+}
+
 /** Run once after deploy: creates tables and seeds default branches. */
 export async function initDb(): Promise<void> {
   await sql`
@@ -156,6 +164,7 @@ export async function initDb(): Promise<void> {
 }
 
 export async function getBranches(): Promise<Branch[]> {
+  await ensureDb();
   const { rows } = await sql`SELECT id, name FROM branches ORDER BY id`;
   return (rows as { id: string; name: string }[]).map((r) => ({ id: r.id, name: r.name }));
 }

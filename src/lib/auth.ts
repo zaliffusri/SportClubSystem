@@ -1,6 +1,6 @@
 import { compare, hash } from "bcryptjs";
 import { cookies } from "next/headers";
-import { addAdmin, getAdminByEmail, getMemberByEmail, getAdmins, initDb } from "./db";
+import { addAdmin, getAdminByEmail, getMemberByEmail, getAdmins, ensureDb } from "./db";
 
 const SESSION_COOKIE = "sport_session";
 const DEFAULT_PASSWORD = "P@ssw0rd";
@@ -15,7 +15,7 @@ export async function verifyPassword(password: string, hashStr: string): Promise
 }
 
 export async function ensureDefaultAdmin(): Promise<void> {
-  await initDb();
+  await ensureDb();
   const admins = await getAdmins();
   if (admins.length > 0) return;
   const passwordHash = await hashPassword(DEFAULT_PASSWORD);
