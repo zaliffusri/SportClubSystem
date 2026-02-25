@@ -544,7 +544,7 @@ export async function respondToChallenge(
     UPDATE challenges SET status = ${status}, responded_at = NOW() WHERE id = ${challengeId} AND status = 'pending'
   `;
   if ((rowCount ?? 0) === 0) return null;
-  return getChallengeById(challengeId);
+  return (await getChallengeById(challengeId)) ?? null;
 }
 
 export async function declareChallengeWinner(challengeId: string, winnerMemberId: string): Promise<Challenge | null> {
@@ -561,7 +561,7 @@ export async function declareChallengeWinner(challengeId: string, winnerMemberId
   `;
   await addPointEntry(c.gameId, winnerMemberId, wager);
   await addPointEntry(c.gameId, loserMemberId, -wager);
-  return getChallengeById(challengeId);
+  return (await getChallengeById(challengeId)) ?? null;
 }
 
 export async function createAuditLog(
