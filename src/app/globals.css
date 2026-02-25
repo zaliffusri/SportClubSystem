@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary: 6 182 212;
+  --glow: rgba(6, 182, 212, 0.4);
+  --surface: 15 23 42;
+}
+
+body {
+  @apply bg-surface-950 text-slate-100 antialiased font-body;
+  background-image: 
+    linear-gradient(rgba(6, 182, 212, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(6, 182, 212, 0.02) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+@layer components {
+  .card {
+    @apply rounded-xl border border-white/10 bg-surface-900 shadow-xl backdrop-blur-sm;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05), 0 4px 24px rgba(0, 0, 0, 0.4);
+  }
+  .card-glass {
+    @apply rounded-xl border border-white/10 bg-white/5 backdrop-blur-md;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center rounded-lg px-4 py-2.5 font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-950 disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply btn bg-primary-500 text-surface-950 hover:bg-primary-400 focus:ring-primary-400 shadow-glow-sm hover:shadow-glow;
+  }
+  .btn-secondary {
+    @apply btn border border-white/20 bg-white/5 text-slate-200 hover:bg-white/10 hover:border-primary-500/50 focus:ring-primary-500/50;
+  }
+  .input {
+    @apply w-full rounded-lg border border-white/15 bg-surface-800 px-3 py-2.5 text-slate-100 placeholder-slate-500 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500/50 transition-colors;
+  }
+  .heading {
+    @apply font-display font-bold tracking-tight text-slate-100;
+  }
+  .badge-glow {
+    @apply shadow-glow-sm;
+  }
+}

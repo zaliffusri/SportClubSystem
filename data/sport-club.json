@@ -1,0 +1,398 @@
+{
+  "branches": [
+    {
+      "id": "1",
+      "name": "Branch Johor"
+    },
+    {
+      "id": "2",
+      "name": "Branch Kuala Lumpur"
+    },
+    {
+      "id": "3",
+      "name": "Branch Kuantan"
+    }
+  ],
+  "members": [
+    {
+      "id": "mm12kkvyb3gk1uvv11",
+      "name": "Zaliff",
+      "branchId": "1",
+      "status": "active",
+      "email": "zaliff@cybersolution.com",
+      "passwordHash": "$2a$10$NXo61E29KmXI3ZAq34UzTu5.RzJAzPzrYDtMdREA2VDOf8BMok7gm"
+    },
+    {
+      "id": "mm12kqiv6qt2k8bu49l",
+      "name": "Ariff",
+      "branchId": "1",
+      "email": "ariff@cybersolution.com",
+      "passwordHash": "$2a$10$NXo61E29KmXI3ZAq34UzTu5.RzJAzPzrYDtMdREA2VDOf8BMok7gm",
+      "status": "active"
+    },
+    {
+      "id": "mm12kudh5jz965152i9",
+      "name": "Khalis",
+      "branchId": "1",
+      "email": "khalis@cybersolution.com",
+      "passwordHash": "$2a$10$NXo61E29KmXI3ZAq34UzTu5.RzJAzPzrYDtMdREA2VDOf8BMok7gm",
+      "status": "active"
+    },
+    {
+      "id": "mm12l00gpba9zyux68g",
+      "name": "Hassif",
+      "branchId": "1",
+      "email": "hassif@cybersolution.com",
+      "passwordHash": "$2a$10$NXo61E29KmXI3ZAq34UzTu5.RzJAzPzrYDtMdREA2VDOf8BMok7gm",
+      "status": "active"
+    },
+    {
+      "id": "mm12l5qwh6mbu57p007",
+      "name": "Abu",
+      "branchId": "1",
+      "email": "abu@cybersolution.com",
+      "passwordHash": "$2a$10$NXo61E29KmXI3ZAq34UzTu5.RzJAzPzrYDtMdREA2VDOf8BMok7gm",
+      "status": "active"
+    }
+  ],
+  "games": [
+    {
+      "id": "mm12j4btixwah6qkh4",
+      "name": "Teka Gula Dalam Balang",
+      "date": "2026-02-26",
+      "description": "Gula Dalam Balang",
+      "type": "guessing"
+    },
+    {
+      "id": "mm12qodsyce90y44hx",
+      "name": "badminton",
+      "date": "2026-02-26",
+      "type": "standard"
+    },
+    {
+      "id": "mm1709n89zvfji1jyd8",
+      "name": "Badminton",
+      "date": "2026-02-19",
+      "description": "Pertandingan Badminton",
+      "type": "standard"
+    },
+    {
+      "id": "mm171lsh6v7ia8fpt7b",
+      "name": "Dart Challenge",
+      "date": "2026-03-07",
+      "description": "Challenge your Clique",
+      "type": "challenge"
+    }
+  ],
+  "pointEntries": [
+    {
+      "id": "mm12nevl3o32itlbie",
+      "gameId": "mm12j4btixwah6qkh4",
+      "memberId": "mm12kkvyb3gk1uvv11",
+      "points": 3
+    },
+    {
+      "id": "mm17ddn2pz3smgbqey",
+      "gameId": "mm171lsh6v7ia8fpt7b",
+      "memberId": "mm12kqiv6qt2k8bu49l",
+      "points": 4
+    },
+    {
+      "id": "mm1gaendabjuifen2du",
+      "gameId": "mm12j4btixwah6qkh4",
+      "memberId": "mm12kqiv6qt2k8bu49l",
+      "points": 10
+    },
+    {
+      "id": "mm1gbo35eorxafsbjlp",
+      "gameId": "mm12qodsyce90y44hx",
+      "memberId": "mm12l00gpba9zyux68g",
+      "points": 10
+    },
+    {
+      "id": "mm1gg0ypyie7nx9ejy9",
+      "gameId": "mm171lsh6v7ia8fpt7b",
+      "memberId": "mm12kkvyb3gk1uvv11",
+      "points": 20
+    }
+  ],
+  "submissions": [
+    {
+      "id": "mm12modwp02o3jf7xwn",
+      "gameId": "mm12j4btixwah6qkh4",
+      "memberId": "mm12l00gpba9zyux68g",
+      "answer": "7",
+      "createdAt": "2026-02-24T20:41:44.948Z"
+    }
+  ],
+  "admins": [
+    {
+      "id": "mm13l598oocs54ffwnn",
+      "email": "admin@sportclub.com",
+      "passwordHash": "$2a$10$AGFBfKWwjmDO5dz2Pn4dWeafEdZA6UT.SWYMDLhgOGLptgg1/ZNp6",
+      "name": "Admin"
+    }
+  ],
+  "auditLogs": [
+    {
+      "id": "mm16uteats98e7oj7d8",
+      "action": "member_updated",
+      "entityType": "member",
+      "entityId": "mm12kqiv6qt2k8bu49l",
+      "userId": "mm13l598oocs54ffwnn",
+      "userRole": "admin",
+      "userEmail": "admin@sportclub.com",
+      "details": {
+        "name": "Ariff",
+        "email": "ariff@cybersolution.com",
+        "branchId": "1",
+        "status": "active"
+      },
+      "createdAt": "2026-02-24T22:40:03.154Z"
+    },
+    {
+      "id": "mm1709ncv9sfifp5f7j",
+      "action": "game_created",
+      "entityType": "game",
+      "entityId": "mm1709n89zvfji1jyd8",
+      "userId": "mm13l598oocs54ffwnn",
+      "userRole": "admin",
+      "userEmail": "admin@sportclub.com",
+      "details": {
+        "name": "Badminton",
+        "type": "standard"
+      },
+      "createdAt": "2026-02-24T22:44:17.496Z"
+    },
+    {
+      "id": "mm171lsj90owqx672dp",
+      "action": "game_created",
+      "entityType": "game",
+      "entityId": "mm171lsh6v7ia8fpt7b",
+      "userId": "mm13l598oocs54ffwnn",
+      "userRole": "admin",
+      "userEmail": "admin@sportclub.com",
+      "details": {
+        "name": "Dart Challenge",
+        "type": "challenge"
+      },
+      "createdAt": "2026-02-24T22:45:19.891Z"
+    },
+    {
+      "id": "mm17853nrzz1swoihck",
+      "action": "challenge_created",
+      "entityType": "challenge",
+      "entityId": "mm17853hefajf00ugrq",
+      "userId": "mm12kkvyb3gk1uvv11",
+      "userRole": "member",
+      "userEmail": "zaliff@cybersolution.com",
+      "details": {
+        "gameId": "mm171lsh6v7ia8fpt7b",
+        "opponentMemberId": "mm12kqiv6qt2k8bu49l",
+        "pointsWagered": 4
+      },
+      "createdAt": "2026-02-24T22:50:24.851Z"
+    },
+    {
+      "id": "mm17cl97i3y78vy7uqe",
+      "action": "challenge_accepted",
+      "entityType": "challenge",
+      "entityId": "mm17853hefajf00ugrq",
+      "userId": "mm12kqiv6qt2k8bu49l",
+      "userRole": "member",
+      "userEmail": "ariff@cybersolution.com",
+      "details": {
+        "challengeId": "mm17853hefajf00ugrq",
+        "action": "accept"
+      },
+      "createdAt": "2026-02-24T22:53:52.411Z"
+    },
+    {
+      "id": "mm17ddn5x7kwlyylsri",
+      "action": "challenge_winner_declared",
+      "entityType": "challenge",
+      "entityId": "mm17853hefajf00ugrq",
+      "userId": "mm13l598oocs54ffwnn",
+      "userRole": "admin",
+      "userEmail": "admin@sportclub.com",
+      "details": {
+        "challengeId": "mm17853hefajf00ugrq",
+        "winnerMemberId": "mm12kqiv6qt2k8bu49l",
+        "pointsAwarded": 4
+      },
+      "createdAt": "2026-02-24T22:54:29.201Z"
+    },
+    {
+      "id": "mm1gaeniz18fo98psar",
+      "action": "point_entry_added",
+      "entityType": "point_entry",
+      "entityId": "mm1gaendabjuifen2du",
+      "userId": "mm13l598oocs54ffwnn",
+      "userRole": "admin",
+      "userEmail": "admin@sportclub.com",
+      "details": {
+        "gameId": "mm12j4btixwah6qkh4",
+        "memberId": "mm12kqiv6qt2k8bu49l",
+        "points": 10
+      },
+      "createdAt": "2026-02-25T03:04:07.086Z"
+    },
+    {
+      "id": "mm1gbo39xjyvr2kvbfs",
+      "action": "point_entry_added",
+      "entityType": "point_entry",
+      "entityId": "mm1gbo35eorxafsbjlp",
+      "userId": "mm13l598oocs54ffwnn",
+      "userRole": "admin",
+      "userEmail": "admin@sportclub.com",
+      "details": {
+        "gameId": "mm12qodsyce90y44hx",
+        "memberId": "mm12l00gpba9zyux68g",
+        "points": 10
+      },
+      "createdAt": "2026-02-25T03:05:05.973Z"
+    },
+    {
+      "id": "mm1gdxcloy4zsj4c2xk",
+      "action": "challenge_created",
+      "entityType": "challenge",
+      "entityId": "mm1gdxcfsdfu07lhz9k",
+      "userId": "mm12kkvyb3gk1uvv11",
+      "userRole": "member",
+      "userEmail": "zaliff@cybersolution.com",
+      "details": {
+        "gameId": "mm171lsh6v7ia8fpt7b",
+        "opponentMemberId": "mm12l5qwh6mbu57p007",
+        "pointsWagered": 20
+      },
+      "createdAt": "2026-02-25T03:06:51.285Z"
+    },
+    {
+      "id": "mm1geb0w9dtl4wam9yj",
+      "action": "challenge_created",
+      "entityType": "challenge",
+      "entityId": "mm1geb0ucscoxqlzx37",
+      "userId": "mm12kkvyb3gk1uvv11",
+      "userRole": "member",
+      "userEmail": "zaliff@cybersolution.com",
+      "details": {
+        "gameId": "mm171lsh6v7ia8fpt7b",
+        "opponentMemberId": "mm12kqiv6qt2k8bu49l",
+        "pointsWagered": 20
+      },
+      "createdAt": "2026-02-25T03:07:09.008Z"
+    },
+    {
+      "id": "mm1gf36rb6xfxnjjf1q",
+      "action": "challenge_accepted",
+      "entityType": "challenge",
+      "entityId": "mm1geb0ucscoxqlzx37",
+      "userId": "mm12kqiv6qt2k8bu49l",
+      "userRole": "member",
+      "userEmail": "ariff@cybersolution.com",
+      "details": {
+        "challengeId": "mm1geb0ucscoxqlzx37",
+        "action": "accept"
+      },
+      "createdAt": "2026-02-25T03:07:45.507Z"
+    },
+    {
+      "id": "mm1gg0yvar8zkt7jcvg",
+      "action": "challenge_winner_declared",
+      "entityType": "challenge",
+      "entityId": "mm1geb0ucscoxqlzx37",
+      "userId": "mm13l598oocs54ffwnn",
+      "userRole": "admin",
+      "userEmail": "admin@sportclub.com",
+      "details": {
+        "challengeId": "mm1geb0ucscoxqlzx37",
+        "winnerMemberId": "mm12kkvyb3gk1uvv11",
+        "pointsAwarded": 20
+      },
+      "createdAt": "2026-02-25T03:08:29.287Z"
+    },
+    {
+      "id": "mm1p4eycgy1sfg8oi6",
+      "action": "member_updated",
+      "entityType": "member",
+      "entityId": "mm12kudh5jz965152i9",
+      "userId": "mm13l598oocs54ffwnn",
+      "userRole": "admin",
+      "userEmail": "admin@sportclub.com",
+      "details": {
+        "name": "Khalis",
+        "email": "khalis@cybersolution.com",
+        "branchId": "1",
+        "status": "active"
+      },
+      "createdAt": "2026-02-25T07:11:24.084Z"
+    },
+    {
+      "id": "mm1p4mrp68mqic54coe",
+      "action": "member_updated",
+      "entityType": "member",
+      "entityId": "mm12l00gpba9zyux68g",
+      "userId": "mm13l598oocs54ffwnn",
+      "userRole": "admin",
+      "userEmail": "admin@sportclub.com",
+      "details": {
+        "name": "Hassif",
+        "email": "hassif@cybersolution.com",
+        "branchId": "1",
+        "status": "active"
+      },
+      "createdAt": "2026-02-25T07:11:34.213Z"
+    },
+    {
+      "id": "mm1p4xi8xx185e53spe",
+      "action": "member_updated",
+      "entityType": "member",
+      "entityId": "mm12l5qwh6mbu57p007",
+      "userId": "mm13l598oocs54ffwnn",
+      "userRole": "admin",
+      "userEmail": "admin@sportclub.com",
+      "details": {
+        "name": "Abu",
+        "email": "abu@cybersolution.com",
+        "branchId": "1",
+        "status": "active"
+      },
+      "createdAt": "2026-02-25T07:11:48.128Z"
+    }
+  ],
+  "challenges": [
+    {
+      "id": "mm17853hefajf00ugrq",
+      "gameId": "mm171lsh6v7ia8fpt7b",
+      "challengerMemberId": "mm12kkvyb3gk1uvv11",
+      "opponentMemberId": "mm12kqiv6qt2k8bu49l",
+      "pointsWagered": 4,
+      "status": "completed",
+      "createdAt": "2026-02-24T22:50:24.845Z",
+      "respondedAt": "2026-02-24T22:53:52.408Z",
+      "winnerMemberId": "mm12kqiv6qt2k8bu49l",
+      "completedAt": "2026-02-24T22:54:29.198Z"
+    },
+    {
+      "id": "mm1gdxcfsdfu07lhz9k",
+      "gameId": "mm171lsh6v7ia8fpt7b",
+      "challengerMemberId": "mm12kkvyb3gk1uvv11",
+      "opponentMemberId": "mm12l5qwh6mbu57p007",
+      "pointsWagered": 20,
+      "status": "pending",
+      "createdAt": "2026-02-25T03:06:51.279Z"
+    },
+    {
+      "id": "mm1geb0ucscoxqlzx37",
+      "gameId": "mm171lsh6v7ia8fpt7b",
+      "challengerMemberId": "mm12kkvyb3gk1uvv11",
+      "opponentMemberId": "mm12kqiv6qt2k8bu49l",
+      "pointsWagered": 20,
+      "status": "completed",
+      "createdAt": "2026-02-25T03:07:09.006Z",
+      "respondedAt": "2026-02-25T03:07:45.503Z",
+      "winnerMemberId": "mm12kkvyb3gk1uvv11",
+      "completedAt": "2026-02-25T03:08:29.281Z"
+    }
+  ]
+}
