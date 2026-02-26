@@ -1,4 +1,15 @@
-import { sql } from "@vercel/postgres";
+import { createPool } from "@vercel/postgres";
+
+const connectionString =
+  process.env.POSTGRES_URL || process.env.DATABASE_URL;
+
+const pool = connectionString ? createPool({ connectionString }) : null;
+
+const sql = pool
+  ? pool.sql.bind(pool)
+  : ((_s: TemplateStringsArray, ..._v: unknown[]) => {
+      throw new Error("POSTGRES_URL or DATABASE_URL is not set.");
+    }) as typeof pool extends null ? never : NonNullable<typeof pool>["sql"];
 
 export type Branch = { id: string; name: string };
 export type Admin = { id: string; email: string; passwordHash: string; name?: string };
@@ -77,6 +88,11 @@ export async function ensureDb(): Promise<void> {
 
 /** Run once after deploy: creates tables and seeds default branches. */
 export async function initDb(): Promise<void> {
+  if (!connectionString) {
+    throw new Error(
+      "POSTGRES_URL or DATABASE_URL is not set. In Vercel: connect a Postgres database (e.g. Neon) to this project."
+    );
+  }
   await sql`
     CREATE TABLE IF NOT EXISTS branches (
       id TEXT PRIMARY KEY,

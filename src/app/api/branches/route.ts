@@ -6,9 +6,10 @@ export async function GET() {
     const branches = await getBranches();
     return NextResponse.json(branches);
   } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
     console.error("GET /api/branches", err);
     return NextResponse.json(
-      { error: "Failed to load branches" },
+      { error: "Failed to load branches", detail: message },
       { status: 500 }
     );
   }
