@@ -347,6 +347,14 @@ export async function getPointEntries(gameId?: string): Promise<PointEntry[]> {
   }));
 }
 
+export async function getMemberTotalPoints(memberId: string): Promise<number> {
+  const { rows } = await sql`
+    SELECT COALESCE(SUM(points), 0) AS total FROM point_entries WHERE member_id = ${memberId}
+  `;
+  const r = (rows as { total: string }[])[0];
+  return r ? Number(r.total) : 0;
+}
+
 export async function getLeaderboard(
   branchId: string
 ): Promise<{ memberId: string; memberName: string; totalPoints: number }[]> {

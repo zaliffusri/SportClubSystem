@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
-import { getChallenges, createChallenge, getGame, getMemberById } from "@/lib/db";
+import { getChallenges, createChallenge, getGame, getMemberById, getMemberTotalPoints } from "@/lib/db";
 import { createAuditLog } from "@/lib/db";
 
 export async function GET(request: Request) {
@@ -59,6 +59,13 @@ export async function POST(request: Request) {
   const points = Number(pointsWagered);
   if (Number.isNaN(points) || points < 1) {
     return NextResponse.json({ error: "pointsWagered must be at least 1" }, { status: 400 });
+  }
+  const challengerPoints = await getMemberTotalPoints(session.id);
+  if (points > challengerPoints) {
+    return NextResponse.json(
+      { error: `You don't have enough points. Your total: ${challengerPoints}, wagered: ${points}` },
+      { status: 400 }
+    );
   }
   try {
     const challenge = await createChallenge(
