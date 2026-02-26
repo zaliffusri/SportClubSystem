@@ -1,15 +1,26 @@
 import { createPool } from "@vercel/postgres";
+import { neon } from "@neondatabase/serverless";
 
 const connectionString =
   process.env.POSTGRES_URL || process.env.DATABASE_URL;
 
-const pool = connectionString ? createPool({ connectionString }) : null;
+type SqlTag = (strings: TemplateStringsArray, ...values: unknown[]) => Promise<{ rows: unknown[]; rowCount?: number }>;
 
-const sql = pool
-  ? pool.sql.bind(pool)
-  : ((_s: TemplateStringsArray, ..._v: unknown[]) => {
-      throw new Error("POSTGRES_URL or DATABASE_URL is not set.");
-    }) as typeof pool extends null ? never : NonNullable<typeof pool>["sql"];
+let sql: SqlTag;
+
+if (connectionString) {
+  if (process.env.DATABASE_URL) {
+    const neonQuery = neon(connectionString, { fullResults: true });
+    sql = neonQuery as unknown as SqlTag;
+  } else {
+    const pool = createPool({ connectionString });
+    sql = pool.sql.bind(pool) as unknown as SqlTag;
+  }
+} else {
+  sql = (() => {
+    throw new Error("POSTGRES_URL or DATABASE_URL is not set.");
+  }) as unknown as SqlTag;
+}
 
 export type Branch = { id: string; name: string };
 export type Admin = { id: string; email: string; passwordHash: string; name?: string };
