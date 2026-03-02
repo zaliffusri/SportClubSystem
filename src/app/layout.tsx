@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Orbitron, Exo_2 } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 import { Header } from "./components/Header";
 
@@ -32,6 +33,7 @@ export default function RootLayout({
         <Header />
         <main className="mx-auto max-w-6xl px-4 py-8">{children}</main>
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
