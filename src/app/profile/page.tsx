@@ -20,6 +20,11 @@ export default function ProfilePage() {
   const [changing, setChanging] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
+  const [editEmail, setEditEmail] = useState("");
+  const [emailPassword, setEmailPassword] = useState("");
+  const [changingEmail, setChangingEmail] = useState(false);
+  const [emailMessage, setEmailMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
   useEffect(() => {
     fetch("/api/auth/profile")
       .then((r) => (r.ok ? r.json() : null))
@@ -60,6 +65,41 @@ export default function ProfilePage() {
       }
     } finally {
       setChanging(false);
+    }
+  };
+
+  const handleChangeEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setEmailMessage(null);
+    const trimmed = editEmail.trim();
+    if (!trimmed) {
+      setEmailMessage({ type: "error", text: "Enter a new email address." });
+      return;
+    }
+    if (!emailPassword) {
+      setEmailMessage({ type: "error", text: "Current password is required." });
+      return;
+    }
+    setChangingEmail(true);
+    try {
+      const res = await fetch("/api/auth/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: trimmed, currentPassword: emailPassword }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        setEmailMessage({ type: "success", text: data.message ?? "Email updated." });
+        setEditEmail("");
+        setEmailPassword("");
+        fetch("/api/auth/profile")
+          .then((r) => (r.ok ? r.json() : null))
+          .then(setProfile);
+      } else {
+        setEmailMessage({ type: "error", text: data.error ?? "Failed to update email." });
+      }
+    } finally {
+      setChangingEmail(false);
     }
   };
 
@@ -116,6 +156,54 @@ export default function ProfilePage() {
             </div>
           )}
         </dl>
+      </div>
+
+      <div className="card p-6">
+        <h2 className="mb-4 font-display text-lg font-semibold text-slate-100">Change email</h2>
+        <form onSubmit={handleChangeEmail} className="space-y-4">
+          <div>
+            <label className="mb-1 block text-sm font-medium text-slate-400">New email</label>
+            <input
+              type="email"
+              value={editEmail}
+              onChange={(e) => setEditEmail(e.target.value)}
+              className="input"
+              placeholder={profile.email}
+              required
+              autoComplete="email"
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-slate-400">
+              Current password
+            </label>
+            <input
+              type="password"
+              value={emailPassword}
+              onChange={(e) => setEmailPassword(e.target.value)}
+              className="input"
+              placeholder="••••••••"
+              required
+              autoComplete="current-password"
+            />
+          </div>
+          {emailMessage && (
+            <p
+              className={`text-sm ${
+                emailMessage.type === "success" ? "text-primary-400" : "text-red-400"
+              }`}
+            >
+              {emailMessage.text}
+            </p>
+          )}
+          <button
+            type="submit"
+            className="btn-primary"
+            disabled={changingEmail}
+          >
+            {changingEmail ? "Updating…" : "Update email"}
+          </button>
+        </form>
       </div>
 
       <div className="card p-6">
