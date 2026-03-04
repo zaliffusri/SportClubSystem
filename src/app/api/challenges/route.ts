@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
-import { getChallenges, createChallenge, getGame, getMemberById, getMemberTotalPoints } from "@/lib/db";
+import { getChallenges, createChallenge, getGame, getUserById, getMemberTotalPoints } from "@/lib/db";
 import { createAuditLog } from "@/lib/db";
 
 export async function GET(request: Request) {
@@ -12,8 +12,8 @@ export async function GET(request: Request) {
   const withNames = await Promise.all(
     challenges.map(async (c) => {
       const [challenger, opponent, game] = await Promise.all([
-        getMemberById(c.challengerMemberId),
-        getMemberById(c.opponentMemberId),
+        getUserById(c.challengerMemberId),
+        getUserById(c.opponentMemberId),
         getGame(c.gameId),
       ]);
       return {
@@ -84,7 +84,7 @@ export async function POST(request: Request) {
       { gameId, opponentMemberId, pointsWagered: points }
     );
     const game = await getGame(challenge.gameId);
-    const opponent = await getMemberById(challenge.opponentMemberId);
+    const opponent = await getUserById(challenge.opponentMemberId);
     return NextResponse.json({
       ...challenge,
       gameName: game?.name,

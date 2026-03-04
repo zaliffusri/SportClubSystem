@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
-import { getSubmissions, addSubmission, getGame, getMemberById } from "@/lib/db";
+import { getSubmissions, addSubmission, getGame, getUserById } from "@/lib/db";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -27,8 +27,8 @@ export async function POST(request: Request) {
   let memberId: string;
   if (session.role === "admin") {
     if (!bodyMemberId) return NextResponse.json({ error: "Member required" }, { status: 400 });
-    const member = await getMemberById(bodyMemberId);
-    if (!member) return NextResponse.json({ error: "Member not found" }, { status: 400 });
+    const member = await getUserById(bodyMemberId);
+    if (!member || member.role !== "member") return NextResponse.json({ error: "Member not found" }, { status: 400 });
     memberId = bodyMemberId;
   } else {
     memberId = session.id;

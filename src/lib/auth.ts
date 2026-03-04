@@ -1,6 +1,6 @@
 import { compare, hash } from "bcryptjs";
 import { cookies } from "next/headers";
-import { addAdmin, getAdminByEmail, getMemberByEmail, getAdmins, ensureDb } from "./db";
+import { addUser, getUserByEmail, getUsers, ensureDb } from "./db";
 
 const SESSION_COOKIE = "sport_session";
 const DEFAULT_PASSWORD = "P@ssw0rd";
@@ -16,10 +16,10 @@ export async function verifyPassword(password: string, hashStr: string): Promise
 
 export async function ensureDefaultAdmin(): Promise<void> {
   await ensureDb();
-  const admins = await getAdmins();
+  const admins = await getUsers("admin");
   if (admins.length > 0) return;
   const passwordHash = await hashPassword(DEFAULT_PASSWORD);
-  await addAdmin("admin@sportclub.com", passwordHash, "Admin");
+  await addUser("admin@sportclub.com", passwordHash, "Admin", "admin");
 }
 
 export type SessionUser =
@@ -80,19 +80,11 @@ export async function loginWithEmailPassword(
   password: string
 ): Promise<SessionUser | { error: string }> {
   await ensureDefaultAdmin();
-  const admin = await getAdminByEmail(email);
-  if (admin) {
-    const ok = await verifyPassword(password, admin.passwordHash);
-    if (!ok) return { error: "Invalid email or password" };
-    return { role: "admin", id: admin.id, email: admin.email };
-  }
-  const member = await getMemberByEmail(email);
-  if (member?.passwordHash) {
-    const ok = await verifyPassword(password, member.passwordHash);
-    if (!ok) return { error: "Invalid email or password" };
-    return { role: "member", id: member.id, email: member.email ?? email };
-  }
-  return { error: "Invalid email or password" };
+  const user = await getUserByEmail(email);
+  if (!user) return { error: "Invalid email or password" };
+  const ok = await verifyPassword(password, user.passwordHash);
+  if (!ok) return { error: "Invalid email or password" };
+  return { role: user.role, id: user.id, email: user.email };
 }
 
 export { DEFAULT_PASSWORD };

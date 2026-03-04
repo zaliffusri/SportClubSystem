@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
-import { updateMember, createAuditLog } from "@/lib/db";
+import { updateUser, createAuditLog } from "@/lib/db";
 
 export async function PATCH(
   request: Request,
@@ -21,7 +21,7 @@ export async function PATCH(
     return NextResponse.json({ error: "No valid fields to update" }, { status: 400 });
   }
   try {
-    const member = await updateMember(memberId, updates);
+    const member = await updateUser(memberId, updates);
     if (!member) return NextResponse.json({ error: "Member not found" }, { status: 404 });
     await createAuditLog(
       "member_updated",

@@ -1,11 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
-import {
-  getAdminByEmail,
-  getMemberById,
-  updateAdminPassword,
-  updateMemberPassword,
-} from "@/lib/db";
+import { getUserById, updateUserPassword } from "@/lib/db";
 import { verifyPassword, hashPassword } from "@/lib/auth";
 
 export async function POST(request: Request) {
@@ -24,28 +19,15 @@ export async function POST(request: Request) {
       { status: 400 }
     );
   }
-  if (session.role === "admin") {
-    const admin = await getAdminByEmail(session.email);
-    if (!admin?.passwordHash) {
-      return NextResponse.json({ error: "Admin not found" }, { status: 404 });
-    }
-    const valid = await verifyPassword(currentPassword, admin.passwordHash);
-    if (!valid) {
-      return NextResponse.json({ error: "Current password is incorrect" }, { status: 400 });
-    }
-    const newHash = await hashPassword(newPassword);
-    await updateAdminPassword(session.id, newHash);
-    return NextResponse.json({ ok: true, message: "Password updated" });
+  const user = await getUserById(session.id);
+  if (!user?.passwordHash) {
+    return NextResponse.json({ error: "User not found or has no password set" }, { status: 404 });
   }
-  const member = await getMemberById(session.id);
-  if (!member?.passwordHash) {
-    return NextResponse.json({ error: "Member not found or has no account" }, { status: 404 });
-  }
-  const valid = await verifyPassword(currentPassword, member.passwordHash);
+  const valid = await verifyPassword(currentPassword, user.passwordHash);
   if (!valid) {
     return NextResponse.json({ error: "Current password is incorrect" }, { status: 400 });
   }
   const newHash = await hashPassword(newPassword);
-  await updateMemberPassword(session.id, newHash);
+  await updateUserPassword(session.id, newHash);
   return NextResponse.json({ ok: true, message: "Password updated" });
 }

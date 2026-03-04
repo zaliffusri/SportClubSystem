@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
-import { getChallengeById, declareChallengeWinner, getMemberById, getGame } from "@/lib/db";
+import { getChallengeById, declareChallengeWinner, getUserById, getGame } from "@/lib/db";
 import { createAuditLog } from "@/lib/db";
 
 export async function PATCH(
@@ -43,7 +43,7 @@ export async function PATCH(
         loserDeduction: -challenge.pointsWagered,
       }
     );
-    const winner = await getMemberById(winnerMemberId);
+    const winner = await getUserById(winnerMemberId);
     const game = await getGame(challenge.gameId);
     return NextResponse.json({
       ...updated,

@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { getLeaderboard } from "@/lib/db";
+import { getLeaderboard, getBranches, ensureDb } from "@/lib/db";
 
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const branchId = searchParams.get("branchId");
-  if (!branchId) return NextResponse.json({ error: "branchId required" }, { status: 400 });
-  const leaderboard = await getLeaderboard(branchId);
+export async function GET() {
+  await ensureDb();
+  const branches = await getBranches();
+  const branchNames = new Map(branches.map((b) => [b.id, b.name]));
+  const leaderboard = await getLeaderboard(branchNames);
   return NextResponse.json(leaderboard);
 }

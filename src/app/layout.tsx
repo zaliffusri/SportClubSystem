@@ -19,7 +19,7 @@ const exo2 = Exo_2({
 
 export const metadata: Metadata = {
   title: "Sport Club Points",
-  description: "Manage points and view leaderboards by branch",
+  description: "Manage points and view leaderboard",
 };
 
 export default function RootLayout({

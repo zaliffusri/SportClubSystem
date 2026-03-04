@@ -23,14 +23,15 @@ if (connectionString) {
 }
 
 export type Branch = { id: string; name: string };
-export type Admin = { id: string; email: string; passwordHash: string; name?: string };
 export type MemberStatus = "active" | "inactive";
-export type Member = {
+/** Single user table: role 'admin' | 'member'. branchId only for members. */
+export type User = {
   id: string;
+  email: string;
+  passwordHash: string;
   name: string;
-  branchId: string;
-  email?: string;
-  passwordHash?: string;
+  role: "admin" | "member";
+  branchId?: string | null;
   status?: MemberStatus;
 };
 export type GameType = "standard" | "guessing" | "challenge";
@@ -182,12 +183,47 @@ export async function initDb(): Promise<void> {
     )
   `;
   await sql`
+    CREATE TABLE IF NOT EXISTS users (
+      id TEXT PRIMARY KEY,
+      email TEXT UNIQUE NOT NULL,
+      password_hash TEXT NOT NULL,
+      name TEXT NOT NULL DEFAULT '',
+      role TEXT NOT NULL,
+      branch_id TEXT,
+      status TEXT NOT NULL DEFAULT 'active'
+    )
+  `;
+  await sql`
     INSERT INTO branches (id, name) VALUES
       ('1', 'Branch Johor'),
       ('2', 'Branch Kuala Lumpur'),
       ('3', 'Branch Kuantan')
     ON CONFLICT (id) DO NOTHING
   `;
+  await migrateAdminsAndMembersToUsers();
+}
+
+async function migrateAdminsAndMembersToUsers(): Promise<void> {
+  const { rows: existing } = await sql`SELECT 1 FROM users LIMIT 1`;
+  if (existing.length > 0) return;
+  const { rows: adminRows } = await sql`SELECT id, email, password_hash, name FROM admins`;
+  for (const a of adminRows as { id: string; email: string; password_hash: string; name: string | null }[]) {
+    await sql`
+      INSERT INTO users (id, email, password_hash, name, role, branch_id, status)
+      VALUES (${a.id}, ${a.email}, ${a.password_hash}, ${a.name ?? "Admin"}, 'admin', NULL, 'active')
+      ON CONFLICT (id) DO NOTHING
+    `;
+  }
+  const { rows: memberRows } = await sql`SELECT id, name, branch_id, email, password_hash, status FROM members`;
+  for (const m of memberRows as { id: string; name: string; branch_id: string; email: string | null; password_hash: string | null; status: string }[]) {
+    const email = m.email?.trim() ? m.email.trim().toLowerCase() : `${m.id}@member.local`;
+    const pass = m.password_hash ?? "";
+    await sql`
+      INSERT INTO users (id, email, password_hash, name, role, branch_id, status)
+      VALUES (${m.id}, ${email}, ${pass}, ${m.name}, 'member', ${m.branch_id}, ${m.status ?? "active"})
+      ON CONFLICT (id) DO NOTHING
+    `;
+  }
 }
 
 export async function getBranches(): Promise<Branch[]> {
@@ -196,129 +232,134 @@ export async function getBranches(): Promise<Branch[]> {
   return (rows as { id: string; name: string }[]).map((r) => ({ id: r.id, name: r.name }));
 }
 
-export async function getAdmins(): Promise<Admin[]> {
-  const { rows } = await sql`SELECT id, email, name FROM admins`;
-  return (rows as { id: string; email: string; name: string | null }[]).map((r) => ({
+export async function getUsers(role?: "admin" | "member", branchId?: string): Promise<Omit<User, "passwordHash">[]> {
+  await ensureDb();
+  let rows: { id: string; email: string; name: string; role: string; branch_id: string | null; status: string }[];
+  if (role && branchId) {
+    const r = await sql`SELECT id, email, name, role, branch_id, status FROM users WHERE role = ${role} AND branch_id = ${branchId}`;
+    rows = r.rows as typeof rows;
+  } else if (role) {
+    const r = await sql`SELECT id, email, name, role, branch_id, status FROM users WHERE role = ${role}`;
+    rows = r.rows as typeof rows;
+  } else {
+    const r = await sql`SELECT id, email, name, role, branch_id, status FROM users`;
+    rows = r.rows as typeof rows;
+  }
+  return rows.map((r) => ({
     id: r.id,
     email: r.email,
-    passwordHash: "",
-    name: r.name ?? undefined,
+    name: r.name,
+    role: r.role as "admin" | "member",
+    branchId: r.branch_id ?? undefined,
+    status: (r.status as MemberStatus) ?? "active",
   }));
 }
 
-export async function getMembers(branchId?: string): Promise<Omit<Member, "passwordHash">[]> {
-  const { rows } = branchId
-    ? await sql`SELECT id, name, branch_id, email, status FROM members WHERE branch_id = ${branchId}`
-    : await sql`SELECT id, name, branch_id, email, status FROM members`;
-  return (rows as { id: string; name: string; branch_id: string; email: string | null; status: string }[]).map(
-    (r) => ({
-      id: r.id,
-      name: r.name,
-      branchId: r.branch_id,
-      email: r.email ?? "",
-      status: (r.status as MemberStatus) ?? "active",
-    })
-  );
+export async function getUserById(id: string): Promise<User | undefined> {
+  const { rows } = await sql`SELECT id, email, password_hash, name, role, branch_id, status FROM users WHERE id = ${id}`;
+  const r = (rows as { id: string; email: string; password_hash: string; name: string; role: string; branch_id: string | null; status: string }[])[0];
+  return r
+    ? {
+        id: r.id,
+        email: r.email,
+        passwordHash: r.password_hash,
+        name: r.name,
+        role: r.role as "admin" | "member",
+        branchId: r.branch_id ?? undefined,
+        status: (r.status as MemberStatus) ?? "active",
+      }
+    : undefined;
 }
 
-export async function getMembersRaw(branchId?: string): Promise<Member[]> {
-  const { rows } = branchId
-    ? await sql`SELECT id, name, branch_id, email, password_hash, status FROM members WHERE branch_id = ${branchId}`
-    : await sql`SELECT id, name, branch_id, email, password_hash, status FROM members`;
-  return (rows as { id: string; name: string; branch_id: string; email: string | null; password_hash: string | null; status: string }[]).map(
-    (r) => ({
-      id: r.id,
-      name: r.name,
-      branchId: r.branch_id,
-      email: r.email ?? undefined,
-      passwordHash: r.password_hash ?? undefined,
-      status: (r.status as MemberStatus) ?? "active",
-    })
-  );
+export async function getUserByEmail(email: string): Promise<User | undefined> {
+  const norm = email.trim().toLowerCase();
+  const { rows } = await sql`SELECT id, email, password_hash, name, role, branch_id, status FROM users WHERE LOWER(email) = ${norm}`;
+  const r = (rows as { id: string; email: string; password_hash: string; name: string; role: string; branch_id: string | null; status: string }[])[0];
+  return r
+    ? {
+        id: r.id,
+        email: r.email,
+        passwordHash: r.password_hash,
+        name: r.name,
+        role: r.role as "admin" | "member",
+        branchId: r.branch_id ?? undefined,
+        status: (r.status as MemberStatus) ?? "active",
+      }
+    : undefined;
 }
 
-export async function getMembersNeedingAccounts(): Promise<Member[]> {
-  const { rows } = await sql`SELECT id, name, branch_id, email, password_hash, status FROM members WHERE password_hash IS NULL`;
-  return (rows as { id: string; name: string; branch_id: string; email: string | null; password_hash: string | null; status: string }[]).map(
-    (r) => ({
-      id: r.id,
-      name: r.name,
-      branchId: r.branch_id,
-      email: r.email ?? undefined,
-      passwordHash: r.password_hash ?? undefined,
-      status: (r.status as MemberStatus) ?? "active",
-    })
-  );
-}
-
-export async function setMemberAccount(
-  memberId: string,
+export async function addUser(
   email: string,
-  passwordHash: string
-): Promise<Omit<Member, "passwordHash"> | null> {
+  passwordHash: string,
+  name: string,
+  role: "admin" | "member",
+  branchId?: string | null
+): Promise<User> {
   const normEmail = email.trim().toLowerCase();
-  const { rows: existing } = await sql`SELECT id FROM members WHERE LOWER(email) = ${normEmail} AND id != ${memberId}`;
-  if (existing.length > 0) throw new Error("A member with this email already exists");
-  const { rows } = await sql`
-    UPDATE members SET email = ${normEmail}, password_hash = ${passwordHash} WHERE id = ${memberId}
-    RETURNING id, name, branch_id, email, status
+  const { rows: existing } = await sql`SELECT id FROM users WHERE LOWER(email) = ${normEmail}`;
+  if (existing.length > 0) throw new Error(role === "admin" ? "An admin with this email already exists" : "A member with this email already exists");
+  const id = generateId();
+  await sql`
+    INSERT INTO users (id, email, password_hash, name, role, branch_id, status)
+    VALUES (${id}, ${normEmail}, ${passwordHash}, ${name}, ${role}, ${branchId ?? null}, 'active')
   `;
-  const r = (rows as { id: string; name: string; branch_id: string; email: string | null; status: string }[])[0];
+  return { id, email: normEmail, passwordHash, name, role, branchId: branchId ?? undefined, status: "active" };
+}
+
+export async function updateUser(
+  userId: string,
+  updates: { name?: string; email?: string; branchId?: string | null; status?: MemberStatus }
+): Promise<Omit<User, "passwordHash"> | null> {
+  const current = await getUserById(userId);
+  if (!current) return null;
+  let name = current.name;
+  let branchId = current.branchId ?? null;
+  let email = current.email;
+  let status = (current.status ?? "active") as string;
+  if (updates.name !== undefined) name = updates.name.trim();
+  if (updates.branchId !== undefined) branchId = updates.branchId ?? null;
+  if (updates.status !== undefined) status = updates.status;
+  if (updates.email !== undefined) {
+    const normEmail = updates.email.trim().toLowerCase();
+    const { rows: taken } = await sql`SELECT id FROM users WHERE LOWER(email) = ${normEmail} AND id != ${userId}`;
+    if (taken.length > 0) throw new Error("A user with this email already exists");
+    email = normEmail;
+  }
+  await sql`
+    UPDATE users SET name = ${name}, branch_id = ${branchId}, email = ${email}, status = ${status}
+    WHERE id = ${userId}
+  `;
+  return { id: userId, email, name, role: current.role, branchId: branchId ?? undefined, status: status as MemberStatus };
+}
+
+export async function setUserAccount(userId: string, email: string, passwordHash: string): Promise<Omit<User, "passwordHash"> | null> {
+  const normEmail = email.trim().toLowerCase();
+  const { rows: existing } = await sql`SELECT id FROM users WHERE LOWER(email) = ${normEmail} AND id != ${userId}`;
+  if (existing.length > 0) throw new Error("A user with this email already exists");
+  const { rows } = await sql`
+    UPDATE users SET email = ${normEmail}, password_hash = ${passwordHash} WHERE id = ${userId}
+    RETURNING id, email, name, role, branch_id, status
+  `;
+  const r = (rows as { id: string; email: string; name: string; role: string; branch_id: string | null; status: string }[])[0];
   if (!r) return null;
-  return { id: r.id, name: r.name, branchId: r.branch_id, email: r.email ?? "", status: (r.status as MemberStatus) ?? "active" };
+  return { id: r.id, email: r.email, name: r.name, role: r.role as "admin" | "member", branchId: r.branch_id ?? undefined, status: (r.status as MemberStatus) ?? "active" };
 }
 
-export async function getAdminByEmail(email: string): Promise<(Admin & { passwordHash: string }) | undefined> {
-  const norm = email.trim().toLowerCase();
-  const { rows } = await sql`SELECT id, email, password_hash, name FROM admins WHERE LOWER(email) = ${norm}`;
-  const r = (rows as { id: string; email: string; password_hash: string; name: string | null }[])[0];
-  return r ? { id: r.id, email: r.email, passwordHash: r.password_hash, name: r.name ?? undefined } : undefined;
+export async function getUsersNeedingAccounts(): Promise<User[]> {
+  const { rows } = await sql`SELECT id, email, password_hash, name, role, branch_id, status FROM users WHERE role = 'member' AND (password_hash IS NULL OR password_hash = '')`;
+  return (rows as { id: string; email: string; password_hash: string | null; name: string; role: string; branch_id: string | null; status: string }[]).map((r) => ({
+    id: r.id,
+    email: r.email,
+    passwordHash: r.password_hash ?? "",
+    name: r.name,
+    role: r.role as "admin" | "member",
+    branchId: r.branch_id ?? undefined,
+    status: (r.status as MemberStatus) ?? "active",
+  }));
 }
 
-export async function getAdminById(id: string): Promise<Admin | undefined> {
-  const { rows } = await sql`SELECT id, email, name FROM admins WHERE id = ${id}`;
-  const r = (rows as { id: string; email: string; name: string | null }[])[0];
-  return r ? { id: r.id, email: r.email, passwordHash: "", name: r.name ?? undefined } : undefined;
-}
-
-export async function getMemberByEmail(email: string): Promise<Member | undefined> {
-  const norm = email.trim().toLowerCase();
-  const { rows } = await sql`SELECT id, name, branch_id, email, password_hash, status FROM members WHERE LOWER(email) = ${norm}`;
-  const r = (rows as { id: string; name: string; branch_id: string; email: string | null; password_hash: string | null; status: string }[])[0];
-  return r
-    ? {
-        id: r.id,
-        name: r.name,
-        branchId: r.branch_id,
-        email: r.email ?? undefined,
-        passwordHash: r.password_hash ?? undefined,
-        status: (r.status as MemberStatus) ?? "active",
-      }
-    : undefined;
-}
-
-export async function getMemberById(id: string): Promise<Member | undefined> {
-  const { rows } = await sql`SELECT id, name, branch_id, email, password_hash, status FROM members WHERE id = ${id}`;
-  const r = (rows as { id: string; name: string; branch_id: string; email: string | null; password_hash: string | null; status: string }[])[0];
-  return r
-    ? {
-        id: r.id,
-        name: r.name,
-        branchId: r.branch_id,
-        email: r.email ?? undefined,
-        passwordHash: r.password_hash ?? undefined,
-        status: (r.status as MemberStatus) ?? "active",
-      }
-    : undefined;
-}
-
-export async function updateAdminPassword(adminId: string, newPasswordHash: string): Promise<boolean> {
-  const { rowCount } = await sql`UPDATE admins SET password_hash = ${newPasswordHash} WHERE id = ${adminId}`;
-  return (rowCount ?? 0) > 0;
-}
-
-export async function updateMemberPassword(memberId: string, newPasswordHash: string): Promise<boolean> {
-  const { rowCount } = await sql`UPDATE members SET password_hash = ${newPasswordHash} WHERE id = ${memberId}`;
+export async function updateUserPassword(userId: string, newPasswordHash: string): Promise<boolean> {
+  const { rowCount } = await sql`UPDATE users SET password_hash = ${newPasswordHash} WHERE id = ${userId}`;
   return (rowCount ?? 0) > 0;
 }
 
@@ -355,20 +396,34 @@ export async function getMemberTotalPoints(memberId: string): Promise<number> {
   return r ? Number(r.total) : 0;
 }
 
-export async function getLeaderboard(
-  branchId: string
-): Promise<{ memberId: string; memberName: string; totalPoints: number }[]> {
-  const { rows: members } = await sql`SELECT id, name FROM members WHERE branch_id = ${branchId}`;
+export type LeaderboardEntry = {
+  userId: string;
+  userName: string;
+  totalPoints: number;
+  branchId?: string | null;
+  branchName?: string;
+};
+
+/** Single global leaderboard; branch details kept for display. */
+export async function getLeaderboard(branchNames?: Map<string, string>): Promise<LeaderboardEntry[]> {
+  await ensureDb();
+  const { rows: members } = await sql`SELECT id, name, branch_id FROM users WHERE role = 'member'`;
   const { rows: entries } = await sql`SELECT member_id, points FROM point_entries`;
   const totals: Record<string, number> = {};
-  for (const m of members as { id: string; name: string }[]) {
+  for (const m of members as { id: string; name: string; branch_id: string | null }[]) {
     totals[m.id] = 0;
   }
   for (const e of entries as { member_id: string; points: number }[]) {
     if (e.member_id in totals) totals[e.member_id] = (totals[e.member_id] ?? 0) + e.points;
   }
-  return (members as { id: string; name: string }[])
-    .map((m) => ({ memberId: m.id, memberName: m.name, totalPoints: totals[m.id] ?? 0 }))
+  return (members as { id: string; name: string; branch_id: string | null }[])
+    .map((m) => ({
+      userId: m.id,
+      userName: m.name,
+      totalPoints: totals[m.id] ?? 0,
+      branchId: m.branch_id ?? undefined,
+      branchName: m.branch_id && branchNames ? branchNames.get(m.branch_id) : undefined,
+    }))
     .sort((a, b) => b.totalPoints - a.totalPoints);
 }
 
@@ -378,57 +433,6 @@ export async function addBranch(name: string): Promise<Branch> {
   return { id, name };
 }
 
-export async function addMember(
-  name: string,
-  branchId: string,
-  email: string,
-  passwordHash: string
-): Promise<Member> {
-  const normEmail = email.trim().toLowerCase();
-  const { rows: existing } = await sql`SELECT id FROM members WHERE LOWER(email) = ${normEmail}`;
-  if (existing.length > 0) throw new Error("A member with this email already exists");
-  const id = generateId();
-  await sql`
-    INSERT INTO members (id, name, branch_id, email, password_hash, status)
-    VALUES (${id}, ${name.trim()}, ${branchId}, ${normEmail}, ${passwordHash}, 'active')
-  `;
-  return { id, name: name.trim(), branchId, email: normEmail, status: "active" };
-}
-
-export async function updateMember(
-  memberId: string,
-  updates: { name?: string; email?: string; branchId?: string; status?: MemberStatus }
-): Promise<Omit<Member, "passwordHash"> | null> {
-  const current = await getMemberById(memberId);
-  if (!current) return null;
-  let name = current.name;
-  let branchId = current.branchId;
-  let email = current.email ?? "";
-  let status = (current.status ?? "active") as string;
-  if (updates.name !== undefined) name = updates.name.trim();
-  if (updates.branchId !== undefined) branchId = updates.branchId;
-  if (updates.status !== undefined) status = updates.status;
-  if (updates.email !== undefined) {
-    const normEmail = updates.email.trim().toLowerCase();
-    const { rows: taken } = await sql`SELECT id FROM members WHERE LOWER(email) = ${normEmail} AND id != ${memberId}`;
-    if (taken.length > 0) throw new Error("A member with this email already exists");
-    email = normEmail;
-  }
-  await sql`
-    UPDATE members SET name = ${name}, branch_id = ${branchId}, email = ${email}, status = ${status}
-    WHERE id = ${memberId}
-  `;
-  return { id: memberId, name, branchId, email, status: status as MemberStatus };
-}
-
-export async function addAdmin(email: string, passwordHash: string, name?: string): Promise<Admin> {
-  const normEmail = email.trim().toLowerCase();
-  const { rows: existing } = await sql`SELECT id FROM admins WHERE LOWER(email) = ${normEmail}`;
-  if (existing.length > 0) throw new Error("An admin with this email already exists");
-  const id = generateId();
-  await sql`INSERT INTO admins (id, email, password_hash, name) VALUES (${id}, ${normEmail}, ${passwordHash}, ${name ?? null})`;
-  return { id, email: normEmail, passwordHash, name };
-}
 
 export async function addGame(
   name: string,
