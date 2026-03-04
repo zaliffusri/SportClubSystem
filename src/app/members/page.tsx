@@ -136,7 +136,6 @@ export default function MembersPage() {
       if (isAdmin) {
         body.branchId = editBranchId;
         body.status = editStatus;
-        body.role = editRole;
       }
       const res = await fetch(`/api/members/${editingId}`, {
         method: "PATCH",
