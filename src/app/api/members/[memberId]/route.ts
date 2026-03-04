@@ -1,25 +1,41 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
-import { updateUser, createAuditLog } from "@/lib/db";
+import { updateUser, createAuditLog, getUserById } from "@/lib/db";
 
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ memberId: string }> }
 ) {
   const session = await getSession();
-  if (!session || session.role !== "admin") {
-    return NextResponse.json({ error: "Admin only" }, { status: 403 });
-  }
+  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   const { memberId } = await params;
+  const isAdmin = session.role === "admin";
+  const isSelf = session.id === memberId;
+
+  if (!isAdmin && !isSelf) {
+    return NextResponse.json({ error: "You can only edit your own profile" }, { status: 403 });
+  }
+
   const body = await request.json().catch(() => ({}));
   const updates: { name?: string; email?: string; branchId?: string; status?: "active" | "inactive" } = {};
+
   if (typeof body.name === "string") updates.name = body.name;
   if (typeof body.email === "string") updates.email = body.email;
-  if (typeof body.branchId === "string") updates.branchId = body.branchId;
-  if (body.status === "active" || body.status === "inactive") updates.status = body.status;
+  if (isAdmin) {
+    if (typeof body.branchId === "string") updates.branchId = body.branchId;
+    if (body.status === "active" || body.status === "inactive") updates.status = body.status;
+  }
+
   if (Object.keys(updates).length === 0) {
     return NextResponse.json({ error: "No valid fields to update" }, { status: 400 });
   }
+
+  const target = await getUserById(memberId);
+  if (!target || target.role !== "member") {
+    return NextResponse.json({ error: "Member not found" }, { status: 404 });
+  }
+
   try {
     const member = await updateUser(memberId, updates);
     if (!member) return NextResponse.json({ error: "Member not found" }, { status: 404 });
@@ -28,7 +44,7 @@ export async function PATCH(
       "member",
       memberId,
       session.id,
-      "admin",
+      session.role,
       session.email,
       updates
     );

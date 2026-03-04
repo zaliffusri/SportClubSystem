@@ -15,6 +15,7 @@ export default function MembersPage() {
   const [branches, setBranches] = useState<Branch[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -30,10 +31,13 @@ export default function MembersPage() {
   const [creatingAccounts, setCreatingAccounts] = useState(false);
 
   const load = async () => {
-    const [branchesRes, membersRes] = await Promise.all([
+    const [profileRes, branchesRes, membersRes] = await Promise.all([
+      fetch("/api/auth/profile"),
       fetch("/api/branches"),
       fetch("/api/members"),
     ]);
+    const profile = profileRes.ok ? await profileRes.json().catch(() => null) : null;
+    setIsAdmin(profile?.role === "admin");
     const safeJson = async (r: Response, fallback: Branch[] | Member[]) => {
       if (!r.ok) return fallback;
       const text = await r.text();
@@ -125,15 +129,18 @@ export default function MembersPage() {
     if (!editingId) return;
     setSaving(true);
     try {
+      const body: { name: string; email: string; branchId?: string; status?: "active" | "inactive" } = {
+        name: editName.trim(),
+        email: editEmail.trim(),
+      };
+      if (isAdmin) {
+        body.branchId = editBranchId;
+        body.status = editStatus;
+      }
       const res = await fetch(`/api/members/${editingId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: editName.trim(),
-          email: editEmail.trim(),
-          branchId: editBranchId,
-          status: editStatus,
-        }),
+        body: JSON.stringify(body),
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
@@ -159,18 +166,20 @@ export default function MembersPage() {
     <div className="space-y-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="heading text-2xl md:text-3xl">Members</h1>
-        <button
-          onClick={() => {
-            setShowForm(!showForm);
-            if (!showForm && branches.length) setFormBranchId(branchId || branches[0].id);
-          }}
-          className="btn-primary"
-        >
-          {showForm ? "Cancel" : "Add Member"}
-        </button>
+        {isAdmin && (
+          <button
+            onClick={() => {
+              setShowForm(!showForm);
+              if (!showForm && branches.length) setFormBranchId(branchId || branches[0].id);
+            }}
+            className="btn-primary"
+          >
+            {showForm ? "Cancel" : "Add Member"}
+          </button>
+        )}
       </div>
 
-      {showForm && (
+      {isAdmin && showForm && (
         <form onSubmit={handleSubmit} className="card space-y-4 p-6">
           <h2 className="font-display text-lg font-semibold text-slate-100">New Member</h2>
           <div>
@@ -217,7 +226,7 @@ export default function MembersPage() {
         </form>
       )}
 
-      {needingAccountsCount > 0 && (
+      {isAdmin && needingAccountsCount > 0 && (
         <div className="card flex items-center justify-between gap-4 border-amber-500/30 bg-amber-500/10 p-4">
           <p className="text-amber-400">
             <strong>{needingAccountsCount}</strong> member{needingAccountsCount !== 1 ? "s" : ""} don&apos;t have
@@ -234,27 +243,29 @@ export default function MembersPage() {
         </div>
       )}
 
-      <div className="flex flex-wrap gap-2">
-        <button
-          onClick={() => setBranchId("")}
-          className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
-            !branchId ? "bg-primary-500 text-surface-950 shadow-glow-sm" : "border border-white/15 bg-white/5 text-slate-400 hover:bg-white/10 hover:text-slate-200"
-          }`}
-        >
-          All branches
-        </button>
-        {branches.map((b) => (
+      {isAdmin && (
+        <div className="flex flex-wrap gap-2">
           <button
-            key={b.id}
-            onClick={() => setBranchId(b.id)}
+            onClick={() => setBranchId("")}
             className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
-              branchId === b.id ? "bg-primary-500 text-surface-950 shadow-glow-sm" : "border border-white/15 bg-white/5 text-slate-400 hover:bg-white/10 hover:text-slate-200"
+              !branchId ? "bg-primary-500 text-surface-950 shadow-glow-sm" : "border border-white/15 bg-white/5 text-slate-400 hover:bg-white/10 hover:text-slate-200"
             }`}
           >
-            {b.name}
+            All branches
           </button>
-        ))}
-      </div>
+          {branches.map((b) => (
+            <button
+              key={b.id}
+              onClick={() => setBranchId(b.id)}
+              className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
+                branchId === b.id ? "bg-primary-500 text-surface-950 shadow-glow-sm" : "border border-white/15 bg-white/5 text-slate-400 hover:bg-white/10 hover:text-slate-200"
+              }`}
+            >
+              {b.name}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="card overflow-hidden">
         <div className="overflow-x-auto">
@@ -312,35 +323,39 @@ export default function MembersPage() {
                               required
                             />
                           </div>
-                          <div>
-                            <label className="mb-1 block text-xs font-medium text-slate-500">
-                              Branch
-                            </label>
-                            <select
-                              value={editBranchId}
-                              onChange={(e) => setEditBranchId(e.target.value)}
-                              className="input w-40"
-                            >
-                              {branches.map((b) => (
-                                <option key={b.id} value={b.id}>
-                                  {b.name}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                          <div>
-                            <label className="mb-1 block text-xs font-medium text-slate-500">
-                              Status
-                            </label>
-                            <select
-                              value={editStatus}
-                              onChange={(e) => setEditStatus(e.target.value as "active" | "inactive")}
-                              className="input w-28"
-                            >
-                              <option value="active">Active</option>
-                              <option value="inactive">Inactive</option>
-                            </select>
-                          </div>
+                          {isAdmin && (
+                            <>
+                              <div>
+                                <label className="mb-1 block text-xs font-medium text-slate-500">
+                                  Branch
+                                </label>
+                                <select
+                                  value={editBranchId}
+                                  onChange={(e) => setEditBranchId(e.target.value)}
+                                  className="input w-40"
+                                >
+                                  {branches.map((b) => (
+                                    <option key={b.id} value={b.id}>
+                                      {b.name}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                              <div>
+                                <label className="mb-1 block text-xs font-medium text-slate-500">
+                                  Status
+                                </label>
+                                <select
+                                  value={editStatus}
+                                  onChange={(e) => setEditStatus(e.target.value as "active" | "inactive")}
+                                  className="input w-28"
+                                >
+                                  <option value="active">Active</option>
+                                  <option value="inactive">Inactive</option>
+                                </select>
+                              </div>
+                            </>
+                          )}
                           <div className="ml-auto flex gap-2">
                             <button
                               type="submit"

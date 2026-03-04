@@ -4,8 +4,16 @@ import { getSession } from "@/lib/auth";
 import { hashPassword, DEFAULT_PASSWORD } from "@/lib/auth";
 
 export async function GET(request: Request) {
+  const session = await getSession();
   const { searchParams } = new URL(request.url);
   const branchId = searchParams.get("branchId") ?? undefined;
+
+  if (session?.role === "member") {
+    const allMembers = await getUsers("member");
+    const self = allMembers.find((m) => m.id === session.id);
+    return NextResponse.json(self ? [self] : []);
+  }
+
   const members = await getUsers("member", branchId);
   return NextResponse.json(members);
 }
