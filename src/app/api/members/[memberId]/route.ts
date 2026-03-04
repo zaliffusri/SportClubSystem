@@ -18,13 +18,14 @@ export async function PATCH(
   }
 
   const body = await request.json().catch(() => ({}));
-  const updates: { name?: string; email?: string; branchId?: string; status?: "active" | "inactive" } = {};
+  const updates: { name?: string; email?: string; branchId?: string | null; status?: "active" | "inactive"; role?: "admin" | "member" } = {};
 
   if (typeof body.name === "string") updates.name = body.name;
   if (typeof body.email === "string") updates.email = body.email;
   if (isAdmin) {
-    if (typeof body.branchId === "string") updates.branchId = body.branchId;
+    if (typeof body.branchId === "string") updates.branchId = body.branchId.trim() || null;
     if (body.status === "active" || body.status === "inactive") updates.status = body.status;
+    if (body.role === "admin" || body.role === "member") updates.role = body.role;
   }
 
   if (Object.keys(updates).length === 0) {
@@ -32,9 +33,8 @@ export async function PATCH(
   }
 
   const target = await getUserById(memberId);
-  if (!target || target.role !== "member") {
-    return NextResponse.json({ error: "Member not found" }, { status: 404 });
-  }
+  if (!target) return NextResponse.json({ error: "User not found" }, { status: 404 });
+  if (!isAdmin && target.role !== "member") return NextResponse.json({ error: "Member not found" }, { status: 404 });
 
   try {
     const member = await updateUser(memberId, updates);

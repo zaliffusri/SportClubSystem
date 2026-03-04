@@ -14,6 +14,15 @@ export async function GET(request: Request) {
     return NextResponse.json(self ? [self] : []);
   }
 
+  if (session?.role === "admin") {
+    if (branchId) {
+      const members = await getUsers("member", branchId);
+      return NextResponse.json(members);
+    }
+    const all = await getUsers();
+    return NextResponse.json(all);
+  }
+
   const members = await getUsers("member", branchId);
   return NextResponse.json(members);
 }

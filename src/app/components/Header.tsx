@@ -31,19 +31,12 @@ export async function Header() {
               >
                 Challenges
               </Link>
-              {isAdmin ? (
+              {isAdmin && (
                 <Link
                   href="/manage"
                   className="rounded-lg px-3 py-2 text-slate-400 transition hover:bg-white/5 hover:text-primary-400"
                 >
                   Manage
-                </Link>
-              ) : (
-                <Link
-                  href="/members"
-                  className="rounded-lg px-3 py-2 text-slate-400 transition hover:bg-white/5 hover:text-primary-400"
-                >
-                  My details
                 </Link>
               )}
               <Link

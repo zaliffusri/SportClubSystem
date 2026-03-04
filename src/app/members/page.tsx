@@ -6,9 +6,10 @@ type Branch = { id: string; name: string };
 type Member = {
   id: string;
   name: string;
-  branchId: string;
+  branchId?: string;
   email?: string;
   status?: "active" | "inactive";
+  role?: "admin" | "member";
 };
 
 export default function MembersPage() {
@@ -26,6 +27,7 @@ export default function MembersPage() {
   const [editEmail, setEditEmail] = useState("");
   const [editBranchId, setEditBranchId] = useState("");
   const [editStatus, setEditStatus] = useState<"active" | "inactive">("active");
+  const [editRole, setEditRole] = useState<"admin" | "member">("member");
   const [saving, setSaving] = useState(false);
   const [needingAccountsCount, setNeedingAccountsCount] = useState(0);
   const [creatingAccounts, setCreatingAccounts] = useState(false);
@@ -106,14 +108,16 @@ export default function MembersPage() {
   };
 
   const filterByBranch = branchId ? members.filter((m) => m.branchId === branchId) : members;
+  const displayRole = (r?: "admin" | "member") => (r === "admin" ? "Admin" : "User");
   const branchName = (id: string) => branches.find((b) => b.id === id)?.name ?? id;
 
   const startEdit = (m: Member) => {
     setEditingId(m.id);
     setEditName(m.name);
     setEditEmail(m.email ?? "");
-    setEditBranchId(m.branchId);
+    setEditBranchId(m.branchId ?? "");
     setEditStatus(m.status ?? "active");
+    setEditRole(m.role ?? "member");
   };
 
   const cancelEdit = () => {
@@ -122,6 +126,7 @@ export default function MembersPage() {
     setEditEmail("");
     setEditBranchId("");
     setEditStatus("active");
+    setEditRole("member");
   };
 
   const handleSaveEdit = async (e: React.FormEvent) => {
@@ -129,13 +134,14 @@ export default function MembersPage() {
     if (!editingId) return;
     setSaving(true);
     try {
-      const body: { name: string; email: string; branchId?: string; status?: "active" | "inactive" } = {
+      const body: { name: string; email: string; branchId?: string; status?: "active" | "inactive"; role?: "admin" | "member" } = {
         name: editName.trim(),
         email: editEmail.trim(),
       };
       if (isAdmin) {
         body.branchId = editBranchId;
         body.status = editStatus;
+        body.role = editRole;
       }
       const res = await fetch(`/api/members/${editingId}`, {
         method: "PATCH",
@@ -281,6 +287,11 @@ export default function MembersPage() {
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                   Branch
                 </th>
+                {isAdmin && (
+                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                    Role
+                  </th>
+                )}
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                   Status
                 </th>
@@ -294,7 +305,7 @@ export default function MembersPage() {
                 <tr key={m.id} className="transition hover:bg-white/5">
                   {editingId === m.id ? (
                     <>
-                      <td className="px-6 py-4" colSpan={5}>
+                      <td className="px-6 py-4" colSpan={isAdmin ? 6 : 5}>
                         <form
                           onSubmit={handleSaveEdit}
                           className="flex flex-wrap items-end gap-3"
@@ -334,6 +345,7 @@ export default function MembersPage() {
                                   onChange={(e) => setEditBranchId(e.target.value)}
                                   className="input w-40"
                                 >
+                                  <option value="">—</option>
                                   {branches.map((b) => (
                                     <option key={b.id} value={b.id}>
                                       {b.name}
@@ -352,6 +364,19 @@ export default function MembersPage() {
                                 >
                                   <option value="active">Active</option>
                                   <option value="inactive">Inactive</option>
+                                </select>
+                              </div>
+                              <div>
+                                <label className="mb-1 block text-xs font-medium text-slate-500">
+                                  Role
+                                </label>
+                                <select
+                                  value={editRole}
+                                  onChange={(e) => setEditRole(e.target.value as "admin" | "member")}
+                                  className="input w-28"
+                                >
+                                  <option value="admin">Admin</option>
+                                  <option value="member">User</option>
                                 </select>
                               </div>
                             </>
@@ -380,7 +405,10 @@ export default function MembersPage() {
                     <>
                       <td className="px-6 py-4 font-medium text-slate-200">{m.name}</td>
                       <td className="px-6 py-4 text-slate-400">{m.email || "—"}</td>
-                      <td className="px-6 py-4 text-slate-400">{branchName(m.branchId)}</td>
+                      <td className="px-6 py-4 text-slate-400">{m.branchId ? branchName(m.branchId) : "—"}</td>
+                      {isAdmin && (
+                        <td className="px-6 py-4 text-slate-400">{displayRole(m.role)}</td>
+                      )}
                       <td className="px-6 py-4">
                         <span
                           className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${
