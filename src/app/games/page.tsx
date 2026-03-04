@@ -158,6 +158,14 @@ export default function GamesPage() {
                   <td className="px-6 py-4 text-slate-500">{g.description ?? "—"}</td>
                   <td className="px-6 py-4 text-right">
                     <span className="flex flex-wrap justify-end gap-2">
+                      <Link
+                        href={`/games/${g.id}/join-qr`}
+                        className="text-primary-400 hover:underline"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Join QR
+                      </Link>
                       {g.type === "guessing" && (
                         <>
                           <Link

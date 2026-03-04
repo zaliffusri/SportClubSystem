@@ -31,6 +31,12 @@ export async function Header() {
               >
                 Challenges
               </Link>
+              <Link
+                href="/my-games"
+                className="rounded-lg px-3 py-2 text-slate-400 transition hover:bg-white/5 hover:text-primary-400"
+              >
+                My games
+              </Link>
               {isAdmin && (
                 <Link
                   href="/manage"

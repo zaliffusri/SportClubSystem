@@ -485,6 +485,36 @@ export async function addPointEntry(gameId: string, memberId: string, points: nu
   return { id, gameId, memberId, points };
 }
 
+export async function hasUserJoinedGame(gameId: string, userId: string): Promise<boolean> {
+  const { rows } = await sql`
+    SELECT 1 FROM point_entries WHERE game_id = ${gameId} AND member_id = ${userId} LIMIT 1
+  `;
+  return (rows as unknown[]).length > 0;
+}
+
+export type GameWithPoints = Game & { totalPointsFromGame: number };
+
+export async function getGamesJoinedByUser(userId: string): Promise<GameWithPoints[]> {
+  const { rows } = await sql`
+    SELECT g.id, g.name, g.date, g.description, g.type,
+           COALESCE(SUM(pe.points), 0)::int AS total_points
+    FROM games g
+    INNER JOIN point_entries pe ON pe.game_id = g.id AND pe.member_id = ${userId}
+    GROUP BY g.id, g.name, g.date, g.description, g.type
+    ORDER BY g.date DESC
+  `;
+  return (rows as { id: string; name: string; date: string; description: string | null; type: string; total_points: number }[]).map(
+    (r) => ({
+      id: r.id,
+      name: r.name,
+      date: r.date,
+      description: r.description ?? undefined,
+      type: (r.type as GameType) ?? "standard",
+      totalPointsFromGame: r.total_points,
+    })
+  );
+}
+
 export async function deletePointEntry(id: string): Promise<boolean> {
   const { rowCount } = await sql`DELETE FROM point_entries WHERE id = ${id}`;
   return (rowCount ?? 0) > 0;
