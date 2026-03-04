@@ -281,15 +281,10 @@ export default function MembersPage() {
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                   Branch
                 </th>
-                {isAdmin && (
-                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                    Role
-                  </th>
-                )}
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                   Status
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-slate-500">
+                <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-slate-500 w-24">
                   Action
                 </th>
               </tr>
@@ -398,11 +393,11 @@ export default function MembersPage() {
                           {(m.status ?? "active") === "active" ? "Active" : "Inactive"}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-right">
+                      <td className="px-6 py-4 text-right w-24">
                         <button
                           type="button"
                           onClick={() => startEdit(m)}
-                          className="text-primary-400 hover:underline text-sm"
+                          className="btn-secondary text-sm py-1.5 px-3"
                         >
                           Edit
                         </button>
