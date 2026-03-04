@@ -84,7 +84,7 @@ export default function JoinGamePage() {
               {result.message}
             </p>
             {result.joined && result.points != null && (
-              <p className="text-sm text-slate-500">You earned {result.points} point for joining.</p>
+              <p className="text-sm text-slate-500">You earned {result.points} points for joining.</p>
             )}
             <div className="flex flex-wrap gap-3 pt-2">
               <Link href="/my-games" className="btn-primary">

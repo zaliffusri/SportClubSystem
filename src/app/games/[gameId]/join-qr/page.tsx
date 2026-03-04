@@ -43,7 +43,7 @@ export default function JoinQRPage() {
         </h1>
         {game?.date && <p className="mt-1 text-slate-500">{game.date}</p>}
         <p className="mt-4 text-sm text-slate-400">
-          Scan to join this game. You’ll sign in and earn 1 point for joining.
+          Scan to join this game. You’ll sign in and earn 10 points for joining.
         </p>
 
         {qrDataUrl && (

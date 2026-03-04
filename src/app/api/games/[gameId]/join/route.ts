@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { getGame, hasUserJoinedGame, addPointEntry } from "@/lib/db";
 
-const JOIN_POINTS = 1;
+const JOIN_POINTS = 10;
 
 export async function POST(
   _request: Request,
@@ -24,6 +24,6 @@ export async function POST(
   return NextResponse.json({
     joined: true,
     points: JOIN_POINTS,
-    message: `You joined "${game.name}" and earned ${JOIN_POINTS} point.`,
+    message: `You joined "${game.name}" and earned ${JOIN_POINTS} points.`,
   });
 }
