@@ -15,12 +15,8 @@ export async function GET(request: Request) {
   }
 
   if (session?.role === "admin") {
-    if (branchId) {
-      const members = await getUsers("member", branchId);
-      return NextResponse.json(members);
-    }
-    const all = await getUsers();
-    return NextResponse.json(all);
+    const members = await getUsers("member", branchId);
+    return NextResponse.json(members);
   }
 
   const members = await getUsers("member", branchId);

@@ -308,7 +308,7 @@ export async function addUser(
 
 export async function updateUser(
   userId: string,
-  updates: { name?: string; email?: string; branchId?: string | null; status?: MemberStatus; role?: "admin" | "member" }
+  updates: { name?: string; email?: string; branchId?: string | null; status?: MemberStatus }
 ): Promise<Omit<User, "passwordHash"> | null> {
   const current = await getUserById(userId);
   if (!current) return null;
@@ -316,14 +316,9 @@ export async function updateUser(
   let branchId = current.branchId ?? null;
   let email = current.email;
   let status = (current.status ?? "active") as string;
-  let role = current.role;
   if (updates.name !== undefined) name = updates.name.trim();
   if (updates.branchId !== undefined) branchId = updates.branchId && updates.branchId.trim() ? updates.branchId.trim() : null;
   if (updates.status !== undefined) status = updates.status;
-  if (updates.role !== undefined) {
-    role = updates.role;
-    if (role === "admin") branchId = null;
-  }
   if (updates.email !== undefined) {
     const normEmail = updates.email.trim().toLowerCase();
     const { rows: taken } = await sql`SELECT id FROM users WHERE LOWER(email) = ${normEmail} AND id != ${userId}`;
@@ -331,10 +326,10 @@ export async function updateUser(
     email = normEmail;
   }
   await sql`
-    UPDATE users SET name = ${name}, branch_id = ${branchId}, email = ${email}, status = ${status}, role = ${role}
+    UPDATE users SET name = ${name}, branch_id = ${branchId}, email = ${email}, status = ${status}
     WHERE id = ${userId}
   `;
-  return { id: userId, email, name, role, branchId: branchId ?? undefined, status: status as MemberStatus };
+  return { id: userId, email, name, role: current.role, branchId: branchId ?? undefined, status: status as MemberStatus };
 }
 
 export async function setUserAccount(userId: string, email: string, passwordHash: string): Promise<Omit<User, "passwordHash"> | null> {

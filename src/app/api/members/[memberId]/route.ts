@@ -18,14 +18,13 @@ export async function PATCH(
   }
 
   const body = await request.json().catch(() => ({}));
-  const updates: { name?: string; email?: string; branchId?: string | null; status?: "active" | "inactive"; role?: "admin" | "member" } = {};
+  const updates: { name?: string; email?: string; branchId?: string | null; status?: "active" | "inactive" } = {};
 
   if (typeof body.name === "string") updates.name = body.name;
   if (typeof body.email === "string") updates.email = body.email;
   if (isAdmin) {
     if (typeof body.branchId === "string") updates.branchId = body.branchId.trim() || null;
     if (body.status === "active" || body.status === "inactive") updates.status = body.status;
-    if (body.role === "admin" || body.role === "member") updates.role = body.role;
   }
 
   if (Object.keys(updates).length === 0) {
