@@ -62,11 +62,11 @@ export default function HomePage() {
                 <th className="cell text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                   Member
                 </th>
-                <th className="cell text-left text-xs font-semibold uppercase tracking-wider text-slate-500 hidden xs:table-cell">
+                <th className="cell text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                   Branch
                 </th>
                 <th className="cell text-right text-xs font-semibold uppercase tracking-wider text-slate-500">
-                  Pts
+                  Points
                 </th>
               </tr>
             </thead>
