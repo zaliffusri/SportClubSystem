@@ -404,26 +404,30 @@ export type LeaderboardEntry = {
   branchName?: string;
 };
 
-/** Single global leaderboard; branch details kept for display. */
+/** Single global leaderboard; branch details kept for display. Includes all members and sums point_entries (join + any other). */
 export async function getLeaderboard(branchNames?: Map<string, string>): Promise<LeaderboardEntry[]> {
   await ensureDb();
   const { rows: members } = await sql`SELECT id, name, branch_id FROM users WHERE role = 'member'`;
   const { rows: entries } = await sql`SELECT member_id, points FROM point_entries`;
   const totals: Record<string, number> = {};
   for (const m of members as { id: string; name: string; branch_id: string | null }[]) {
-    totals[m.id] = 0;
+    totals[String(m.id)] = 0;
   }
-  for (const e of entries as { member_id: string; points: number }[]) {
-    if (e.member_id in totals) totals[e.member_id] = (totals[e.member_id] ?? 0) + e.points;
+  for (const e of entries as { member_id: string | number; points: number }[]) {
+    const key = String(e.member_id);
+    if (key in totals) totals[key] = (totals[key] ?? 0) + Number(e.points);
   }
   return (members as { id: string; name: string; branch_id: string | null }[])
-    .map((m) => ({
-      userId: m.id,
-      userName: m.name,
-      totalPoints: totals[m.id] ?? 0,
-      branchId: m.branch_id ?? undefined,
-      branchName: m.branch_id && branchNames ? branchNames.get(m.branch_id) : undefined,
-    }))
+    .map((m) => {
+      const key = String(m.id);
+      return {
+        userId: m.id,
+        userName: m.name,
+        totalPoints: totals[key] ?? 0,
+        branchId: m.branch_id ?? undefined,
+        branchName: m.branch_id && branchNames ? branchNames.get(String(m.branch_id)) : undefined,
+      };
+    })
     .sort((a, b) => b.totalPoints - a.totalPoints);
 }
 
