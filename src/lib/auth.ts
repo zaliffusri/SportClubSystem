@@ -24,7 +24,8 @@ export async function ensureDefaultAdmin(): Promise<void> {
 
 export type SessionUser =
   | { role: "admin"; id: string; email: string }
-  | { role: "member"; id: string; email: string };
+  | { role: "member"; id: string; email: string }
+  | { role: "finance"; id: string; email: string };
 
 const SECRET = process.env.SESSION_SECRET ?? "sport-club-dev-secret-change-in-production";
 
@@ -46,6 +47,7 @@ export function decodeSession(cookieValue: string): SessionUser | null {
     const payload = JSON.parse(Buffer.from(encoded, "base64url").toString("utf-8"));
     if (payload?.role === "admin" && payload?.id && payload?.email) return payload as SessionUser;
     if (payload?.role === "member" && payload?.id && payload?.email) return payload as SessionUser;
+    if (payload?.role === "finance" && payload?.id && payload?.email) return payload as SessionUser;
     return null;
   } catch {
     return null;

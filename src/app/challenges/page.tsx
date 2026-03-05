@@ -168,7 +168,7 @@ export default function ChallengesPage() {
       )}
 
       {showForm && (
-        <form onSubmit={handleCreate} className="card space-y-4 p-6">
+        <form onSubmit={handleCreate} className="card space-y-4 p-4 sm:p-6">
           <h2 className="font-display text-lg font-semibold text-slate-100">Challenge another member</h2>
           <p className="text-sm text-slate-500">
             Choose a challenge game, opponent, and points to wager. When they accept, both of you put in that many points (e.g. 2 pts each = 4 total at stake). Winner gains the wager (+2), loser loses the wager (-2). Admin declares winner.

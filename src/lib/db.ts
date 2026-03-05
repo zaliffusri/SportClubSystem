@@ -24,13 +24,14 @@ if (connectionString) {
 
 export type Branch = { id: string; name: string };
 export type MemberStatus = "active" | "inactive";
-/** Single user table: role 'admin' | 'member'. branchId only for members. */
+export type UserRole = "admin" | "member" | "finance";
+/** Single user table: role admin | member | finance. branchId only for members. */
 export type User = {
   id: string;
   email: string;
   passwordHash: string;
   name: string;
-  role: "admin" | "member";
+  role: UserRole;
   branchId?: string | null;
   status?: MemberStatus;
 };
@@ -80,7 +81,7 @@ export type AuditLog = {
   entityType: string;
   entityId: string;
   userId: string;
-  userRole: "admin" | "member";
+  userRole: UserRole;
   userEmail: string;
   details: Record<string, unknown>;
   createdAt: string;
@@ -232,7 +233,7 @@ export async function getBranches(): Promise<Branch[]> {
   return (rows as { id: string; name: string }[]).map((r) => ({ id: r.id, name: r.name }));
 }
 
-export async function getUsers(role?: "admin" | "member", branchId?: string): Promise<Omit<User, "passwordHash">[]> {
+export async function getUsers(role?: UserRole, branchId?: string): Promise<Omit<User, "passwordHash">[]> {
   await ensureDb();
   let rows: { id: string; email: string; name: string; role: string; branch_id: string | null; status: string }[];
   if (role && branchId) {
@@ -249,7 +250,7 @@ export async function getUsers(role?: "admin" | "member", branchId?: string): Pr
     id: r.id,
     email: r.email,
     name: r.name,
-    role: r.role as "admin" | "member",
+    role: r.role as UserRole,
     branchId: r.branch_id ?? undefined,
     status: (r.status as MemberStatus) ?? "active",
   }));
@@ -264,7 +265,7 @@ export async function getUserById(id: string): Promise<User | undefined> {
         email: r.email,
         passwordHash: r.password_hash,
         name: r.name,
-        role: r.role as "admin" | "member",
+        role: r.role as UserRole,
         branchId: r.branch_id ?? undefined,
         status: (r.status as MemberStatus) ?? "active",
       }
@@ -281,7 +282,7 @@ export async function getUserByEmail(email: string): Promise<User | undefined> {
         email: r.email,
         passwordHash: r.password_hash,
         name: r.name,
-        role: r.role as "admin" | "member",
+        role: r.role as UserRole,
         branchId: r.branch_id ?? undefined,
         status: (r.status as MemberStatus) ?? "active",
       }
@@ -292,12 +293,12 @@ export async function addUser(
   email: string,
   passwordHash: string,
   name: string,
-  role: "admin" | "member",
+  role: UserRole,
   branchId?: string | null
 ): Promise<User> {
   const normEmail = email.trim().toLowerCase();
   const { rows: existing } = await sql`SELECT id FROM users WHERE LOWER(email) = ${normEmail}`;
-  if (existing.length > 0) throw new Error(role === "admin" ? "An admin with this email already exists" : "A member with this email already exists");
+  if (existing.length > 0) throw new Error(role === "admin" ? "An admin with this email already exists" : role === "finance" ? "A finance user with this email already exists" : "A member with this email already exists");
   const id = generateId();
   await sql`
     INSERT INTO users (id, email, password_hash, name, role, branch_id, status)
@@ -342,7 +343,7 @@ export async function setUserAccount(userId: string, email: string, passwordHash
   `;
   const r = (rows as { id: string; email: string; name: string; role: string; branch_id: string | null; status: string }[])[0];
   if (!r) return null;
-  return { id: r.id, email: r.email, name: r.name, role: r.role as "admin" | "member", branchId: r.branch_id ?? undefined, status: (r.status as MemberStatus) ?? "active" };
+  return { id: r.id, email: r.email, name: r.name, role: r.role as UserRole, branchId: r.branch_id ?? undefined, status: (r.status as MemberStatus) ?? "active" };
 }
 
 export async function getUsersNeedingAccounts(): Promise<User[]> {
@@ -352,7 +353,7 @@ export async function getUsersNeedingAccounts(): Promise<User[]> {
     email: r.email,
     passwordHash: r.password_hash ?? "",
     name: r.name,
-    role: r.role as "admin" | "member",
+    role: r.role as UserRole,
     branchId: r.branch_id ?? undefined,
     status: (r.status as MemberStatus) ?? "active",
   }));
@@ -651,7 +652,7 @@ export async function createAuditLog(
   entityType: string,
   entityId: string,
   userId: string,
-  userRole: "admin" | "member",
+  userRole: UserRole,
   userEmail: string,
   details: Record<string, unknown> = {}
 ): Promise<AuditLog> {
@@ -694,7 +695,7 @@ export async function getAuditLogs(limit = 200): Promise<AuditLog[]> {
     entityType: r.entity_type,
     entityId: r.entity_id,
     userId: r.user_id,
-    userRole: r.user_role as "admin" | "member",
+    userRole: r.user_role as UserRole,
     userEmail: r.user_email,
     details: (r.details as Record<string, unknown>) ?? {},
     createdAt: new Date(r.created_at).toISOString(),

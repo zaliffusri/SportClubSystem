@@ -9,6 +9,9 @@ export async function GET() {
 
 export async function POST(request: Request) {
   const session = await getSession();
+  if (!session || (session.role !== "admin" && session.role !== "finance")) {
+    return NextResponse.json({ error: "Admin or Finance only" }, { status: 403 });
+  }
   const { name, date, description, type } = await request.json();
   if (!name?.trim()) return NextResponse.json({ error: "Name required" }, { status: 400 });
   if (!date) return NextResponse.json({ error: "Date required" }, { status: 400 });

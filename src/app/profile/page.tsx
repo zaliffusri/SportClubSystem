@@ -123,15 +123,15 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="mx-auto max-w-lg space-y-8">
-      <h1 className="heading text-2xl">My profile</h1>
+    <div className="mx-auto max-w-lg space-y-6 sm:space-y-8">
+      <h1 className="heading text-xl sm:text-2xl">My profile</h1>
 
-      <div className="card p-6">
+      <div className="card p-4 sm:p-6">
         <h2 className="mb-4 font-display text-lg font-semibold text-slate-100">Account details</h2>
         <dl className="space-y-3">
           <div>
             <dt className="text-sm font-medium text-slate-500">Role</dt>
-            <dd className="text-slate-200">{profile.role === "admin" ? "Admin" : "Member"}</dd>
+            <dd className="text-slate-200">{profile.role === "admin" ? "Admin" : profile.role === "finance" ? "Finance" : "Member"}</dd>
           </div>
           <div>
             <dt className="text-sm font-medium text-slate-500">Email</dt>
@@ -158,7 +158,7 @@ export default function ProfilePage() {
         </dl>
       </div>
 
-      <div className="card p-6">
+      <div className="card p-4 sm:p-6">
         <h2 className="mb-4 font-display text-lg font-semibold text-slate-100">Change email</h2>
         <form onSubmit={handleChangeEmail} className="space-y-4">
           <div>
@@ -206,7 +206,7 @@ export default function ProfilePage() {
         </form>
       </div>
 
-      <div className="card p-6">
+      <div className="card p-4 sm:p-6">
         <h2 className="mb-4 font-display text-lg font-semibold text-slate-100">Change password</h2>
         <form onSubmit={handleChangePassword} className="space-y-4">
           <div>

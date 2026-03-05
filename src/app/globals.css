@@ -42,4 +42,8 @@ body {
   .badge-glow {
     @apply shadow-glow-sm;
   }
+  /* Responsive table cells for mobile */
+  .cell {
+    @apply px-3 py-2 sm:px-6 sm:py-4;
+  }
 }

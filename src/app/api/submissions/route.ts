@@ -25,7 +25,7 @@ export async function POST(request: Request) {
   if (game.type !== "guessing") return NextResponse.json({ error: "Not a guessing game" }, { status: 400 });
 
   let memberId: string;
-  if (session.role === "admin") {
+  if (session.role === "admin" || session.role === "finance") {
     if (!bodyMemberId) return NextResponse.json({ error: "Member required" }, { status: 400 });
     const member = await getUserById(bodyMemberId);
     if (!member || member.role !== "member") return NextResponse.json({ error: "Member not found" }, { status: 400 });

@@ -6,8 +6,8 @@ import { hashPassword, DEFAULT_PASSWORD } from "@/lib/auth";
 /** List members that don't have a login account yet. */
 export async function GET() {
   const session = await getSession();
-  if (!session || session.role !== "admin") {
-    return NextResponse.json({ error: "Admin only" }, { status: 403 });
+  if (!session || (session.role !== "admin" && session.role !== "finance")) {
+    return NextResponse.json({ error: "Admin or Finance only" }, { status: 403 });
   }
   const needing = await getUsersNeedingAccounts();
   const list = needing.map((m) => ({
@@ -21,8 +21,8 @@ export async function GET() {
 /** Create login accounts for all members that don't have one yet. */
 export async function POST() {
   const session = await getSession();
-  if (!session || session.role !== "admin") {
-    return NextResponse.json({ error: "Admin only" }, { status: 403 });
+  if (!session || (session.role !== "admin" && session.role !== "finance")) {
+    return NextResponse.json({ error: "Admin or Finance only" }, { status: 403 });
   }
   const needing = await getUsersNeedingAccounts();
   if (needing.length === 0) {

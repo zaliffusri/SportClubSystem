@@ -9,6 +9,7 @@ type Member = {
   branchId?: string;
   email?: string;
   status?: "active" | "inactive";
+  role?: "admin" | "member" | "finance";
 };
 
 export default function MembersPage() {
@@ -21,6 +22,7 @@ export default function MembersPage() {
   const [email, setEmail] = useState("");
   const [branchId, setBranchId] = useState("");
   const [formBranchId, setFormBranchId] = useState("");
+  const [formRole, setFormRole] = useState<"member" | "admin" | "finance">("member");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [editEmail, setEditEmail] = useState("");
@@ -37,7 +39,7 @@ export default function MembersPage() {
       fetch("/api/members"),
     ]);
     const profile = profileRes.ok ? await profileRes.json().catch(() => null) : null;
-    setIsAdmin(profile?.role === "admin");
+    setIsAdmin(profile?.role === "admin" || profile?.role === "finance");
     const safeJson = async (r: Response, fallback: Branch[] | Member[]) => {
       if (!r.ok) return fallback;
       const text = await r.text();
@@ -92,7 +94,12 @@ export default function MembersPage() {
     const res = await fetch("/api/members", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: name.trim(), email: email.trim(), branchId: formBranchId }),
+      body: JSON.stringify({
+        name: name.trim(),
+        email: email.trim(),
+        branchId: formRole === "member" ? formBranchId : undefined,
+        role: formRole,
+      }),
     });
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
@@ -105,8 +112,11 @@ export default function MembersPage() {
     load();
   };
 
-  const filterByBranch = branchId ? members.filter((m) => m.branchId === branchId) : members;
+  const filterByBranch = branchId
+    ? members.filter((m) => m.branchId === branchId || m.role === "finance")
+    : members;
   const branchName = (id: string) => branches.find((b) => b.id === id)?.name ?? id;
+  const roleLabel = (r?: string) => (r === "admin" ? "Admin" : r === "finance" ? "Finance" : "Member");
 
   const startEdit = (m: Member) => {
     setEditingId(m.id);
@@ -180,7 +190,7 @@ export default function MembersPage() {
       </div>
 
       {isAdmin && showForm && (
-        <form onSubmit={handleSubmit} className="card space-y-4 p-6">
+        <form onSubmit={handleSubmit} className="card space-y-4 p-4 sm:p-6">
           <h2 className="font-display text-lg font-semibold text-slate-100">New Member</h2>
           <div>
             <label className="mb-1 block text-sm font-medium text-slate-400">Name</label>
@@ -200,26 +210,40 @@ export default function MembersPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="input"
-              placeholder="member@example.com"
+              placeholder="user@example.com"
               required
             />
             <p className="mt-1 text-xs text-slate-500">Default password: P@ssw0rd</p>
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-slate-400">Branch</label>
+            <label className="mb-1 block text-sm font-medium text-slate-400">Role</label>
             <select
-              value={formBranchId}
-              onChange={(e) => setFormBranchId(e.target.value)}
+              value={formRole}
+              onChange={(e) => setFormRole(e.target.value as "member" | "admin" | "finance")}
               className="input"
-              required
             >
-              {branches.map((b) => (
-                <option key={b.id} value={b.id}>
-                  {b.name}
-                </option>
-              ))}
+              <option value="member">Member</option>
+              <option value="finance">Finance</option>
+              <option value="admin">Admin</option>
             </select>
           </div>
+          {formRole === "member" && (
+            <div>
+              <label className="mb-1 block text-sm font-medium text-slate-400">Branch</label>
+              <select
+                value={formBranchId}
+                onChange={(e) => setFormBranchId(e.target.value)}
+                className="input"
+                required
+              >
+                {branches.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
           <button type="submit" className="btn-primary">
             Add Member
           </button>
@@ -227,7 +251,7 @@ export default function MembersPage() {
       )}
 
       {isAdmin && needingAccountsCount > 0 && (
-        <div className="card flex items-center justify-between gap-4 border-amber-500/30 bg-amber-500/10 p-4">
+        <div className="card flex flex-col gap-4 border-amber-500/30 bg-amber-500/10 p-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-amber-400">
             <strong>{needingAccountsCount}</strong> member{needingAccountsCount !== 1 ? "s" : ""} don&apos;t have
             login accounts yet.
@@ -268,23 +292,28 @@ export default function MembersPage() {
       )}
 
       <div className="card overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
+        <div className="overflow-x-auto -mx-px">
+          <table className="w-full min-w-[320px]">
             <thead>
               <tr className="border-b border-white/10 bg-white/5">
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                <th className="cell text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                   Name
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                <th className="cell text-left text-xs font-semibold uppercase tracking-wider text-slate-500 hidden sm:table-cell">
                   Email
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                <th className="cell text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                   Branch
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                {isAdmin && (
+                  <th className="cell text-left text-xs font-semibold uppercase tracking-wider text-slate-500 hidden sm:table-cell">
+                    Role
+                  </th>
+                )}
+                <th className="cell text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                   Status
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-slate-500 w-24">
+                <th className="cell text-right text-xs font-semibold uppercase tracking-wider text-slate-500 w-20 sm:w-24">
                   Action
                 </th>
               </tr>
@@ -294,12 +323,12 @@ export default function MembersPage() {
                 <tr key={m.id} className="transition hover:bg-white/5">
                   {editingId === m.id ? (
                     <>
-                      <td className="px-6 py-4" colSpan={5}>
+                      <td className="cell" colSpan={isAdmin ? 6 : 5}>
                         <form
                           onSubmit={handleSaveEdit}
                           className="flex flex-wrap items-end gap-3"
                         >
-                          <div>
+                          <div className="w-full min-w-0 sm:w-auto">
                             <label className="mb-1 block text-xs font-medium text-slate-500">
                               Name
                             </label>
@@ -307,11 +336,11 @@ export default function MembersPage() {
                               type="text"
                               value={editName}
                               onChange={(e) => setEditName(e.target.value)}
-                              className="input w-40"
+                              className="input w-full sm:w-40"
                               required
                             />
                           </div>
-                          <div>
+                          <div className="w-full min-w-0 sm:w-auto">
                             <label className="mb-1 block text-xs font-medium text-slate-500">
                               Email
                             </label>
@@ -319,20 +348,20 @@ export default function MembersPage() {
                               type="email"
                               value={editEmail}
                               onChange={(e) => setEditEmail(e.target.value)}
-                              className="input w-48"
+                              className="input w-full sm:w-48"
                               required
                             />
                           </div>
                           {isAdmin && (
                             <>
-                              <div>
+                              <div className="w-full min-w-0 sm:w-auto">
                                 <label className="mb-1 block text-xs font-medium text-slate-500">
                                   Branch
                                 </label>
                                 <select
                                   value={editBranchId}
                                   onChange={(e) => setEditBranchId(e.target.value)}
-                                  className="input w-40"
+                                  className="input w-full sm:w-40"
                                 >
                                   <option value="">—</option>
                                   {branches.map((b) => (
@@ -357,7 +386,7 @@ export default function MembersPage() {
                               </div>
                             </>
                           )}
-                          <div className="ml-auto flex gap-2">
+                          <div className="flex w-full gap-2 sm:ml-auto sm:w-auto">
                             <button
                               type="submit"
                               className="btn-primary text-sm"
@@ -379,10 +408,13 @@ export default function MembersPage() {
                     </>
                   ) : (
                     <>
-                      <td className="px-6 py-4 font-medium text-slate-200">{m.name}</td>
-                      <td className="px-6 py-4 text-slate-400">{m.email || "—"}</td>
-                      <td className="px-6 py-4 text-slate-400">{m.branchId ? branchName(m.branchId) : "—"}</td>
-                      <td className="px-6 py-4">
+                      <td className="cell font-medium text-slate-200">{m.name}</td>
+                      <td className="cell text-slate-400 hidden sm:table-cell">{m.email || "—"}</td>
+                      <td className="cell text-slate-400">{m.branchId ? branchName(m.branchId) : "—"}</td>
+                      {isAdmin && (
+                        <td className="cell text-slate-400 hidden sm:table-cell">{roleLabel(m.role)}</td>
+                      )}
+                      <td className="cell">
                         <span
                           className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${
                             (m.status ?? "active") === "active"
@@ -393,7 +425,7 @@ export default function MembersPage() {
                           {(m.status ?? "active") === "active" ? "Active" : "Inactive"}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-right w-24">
+                      <td className="cell text-right w-20 sm:w-24">
                         <button
                           type="button"
                           onClick={() => startEdit(m)}
@@ -410,7 +442,7 @@ export default function MembersPage() {
           </table>
         </div>
         {filterByBranch.length === 0 && (
-          <div className="px-6 py-12 text-center text-slate-500">
+          <div className="cell py-12 text-center text-slate-500">
             No members in this filter. Add members to get started.
           </div>
         )}

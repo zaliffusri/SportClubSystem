@@ -7,7 +7,7 @@ import QRCode from "qrcode";
 
 type Game = { id: string; name: string; date: string; type?: string };
 type Member = { id: string; name: string; branchId: string };
-type SessionUser = { role: "admin" | "member"; id: string; email: string };
+type SessionUser = { role: "admin" | "member" | "finance"; id: string; email: string };
 
 export default function PlayGamePage() {
   const params = useParams();
@@ -55,7 +55,7 @@ export default function PlayGamePage() {
   }, [gameId]);
 
   useEffect(() => {
-    if (!gameId || !session || session.role !== "admin") return;
+    if (!gameId || !session || (session.role !== "admin" && session.role !== "finance")) return;
     fetch("/api/members")
       .then((r) => (r.ok ? r.json() : []))
       .then((m: Member[]) => {
@@ -79,7 +79,7 @@ export default function PlayGamePage() {
       window.location.href = `/login?from=${encodeURIComponent(`/play/${gameId}`)}`;
       return;
     }
-    const effectiveMemberId = session.role === "admin" ? memberId : session.id;
+    const effectiveMemberId = session.role === "admin" || session.role === "finance" ? memberId : session.id;
     if (!gameId || !effectiveMemberId) return;
     setSubmitting(true);
     try {
@@ -162,7 +162,7 @@ export default function PlayGamePage() {
         ) : (
           <form onSubmit={handleSubmit} className="card space-y-4 p-6">
             <h2 className="font-display font-semibold text-slate-100">Your answer</h2>
-            {session.role === "admin" ? (
+            {(session.role === "admin" || session.role === "finance") ? (
               <div>
                 <label className="mb-1 block text-sm font-medium text-slate-400">Submit as (member)</label>
                 <select

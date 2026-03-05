@@ -18,8 +18,14 @@ const exo2 = Exo_2({
 });
 
 export const metadata: Metadata = {
-  title: "Sport Club Points",
+  title: "CTSB Sports",
   description: "Manage points and view leaderboard",
+};
+
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
 };
 
 export default function RootLayout({
@@ -31,7 +37,7 @@ export default function RootLayout({
     <html lang="en" className={`${orbitron.variable} ${exo2.variable}`}>
       <body className="min-h-screen font-body">
         <Header />
-        <main className="mx-auto max-w-6xl px-4 py-8">{children}</main>
+        <main className="mx-auto max-w-6xl px-3 py-4 sm:px-4 sm:py-6 lg:py-8">{children}</main>
         <Analytics />
         <SpeedInsights />
       </body>

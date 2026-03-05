@@ -8,8 +8,8 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await getSession();
-  if (!session || session.role !== "admin") {
-    return NextResponse.json({ error: "Admin only" }, { status: 403 });
+  if (!session || (session.role !== "admin" && session.role !== "finance")) {
+    return NextResponse.json({ error: "Admin or Finance only" }, { status: 403 });
   }
   const { id } = await params;
   const body = await request.json().catch(() => ({}));

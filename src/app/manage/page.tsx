@@ -12,7 +12,7 @@ const LINKS = [
 
 export default async function ManagePage() {
   const session = await getSession();
-  if (!session || session.role !== "admin") redirect("/");
+  if (!session || (session.role !== "admin" && session.role !== "finance")) redirect("/");
 
   return (
     <div className="space-y-8">

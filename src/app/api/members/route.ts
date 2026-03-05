@@ -16,6 +16,11 @@ export async function GET(request: Request) {
 
   if (session?.role === "admin") {
     const members = await getUsers("member", branchId);
+    const finance = await getUsers("finance");
+    return NextResponse.json([...members, ...finance]);
+  }
+  if (session?.role === "finance") {
+    const members = await getUsers("member", branchId);
     return NextResponse.json(members);
   }
 
@@ -25,16 +30,17 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   const session = await getSession();
-  if (!session || session.role !== "admin") {
-    return NextResponse.json({ error: "Admin only" }, { status: 403 });
+  if (!session || (session.role !== "admin" && session.role !== "finance")) {
+    return NextResponse.json({ error: "Admin or Finance only" }, { status: 403 });
   }
-  const { name, branchId, email } = await request.json();
+  const { name, branchId, email, role: bodyRole } = await request.json();
   if (!name?.trim()) return NextResponse.json({ error: "Name required" }, { status: 400 });
-  if (!branchId) return NextResponse.json({ error: "Branch required" }, { status: 400 });
+  const role = bodyRole === "admin" || bodyRole === "finance" ? bodyRole : "member";
+  if (role === "member" && !branchId) return NextResponse.json({ error: "Branch required for members" }, { status: 400 });
   if (!email?.trim()) return NextResponse.json({ error: "Email required (for login)" }, { status: 400 });
   try {
     const passwordHash = await hashPassword(DEFAULT_PASSWORD);
-    const user = await addUser(email.trim(), passwordHash, name.trim(), "member", branchId);
+    const user = await addUser(email.trim(), passwordHash, name.trim(), role, role === "member" ? branchId : undefined);
     await createAuditLog(
       "member_added",
       "member",
@@ -42,7 +48,7 @@ export async function POST(request: Request) {
       session.id,
       "admin",
       session.email,
-      { name: user.name, branchId, email: user.email }
+      { name: user.name, role, branchId: user.branchId, email: user.email }
     );
     return NextResponse.json({ id: user.id, name: user.name, branchId: user.branchId, email: user.email, status: user.status });
   } catch (err) {

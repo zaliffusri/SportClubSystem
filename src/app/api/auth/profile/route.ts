@@ -13,7 +13,7 @@ export async function GET() {
     role: user.role,
     id: session.id,
     email: session.email,
-    name: user.name ?? (user.role === "admin" ? "Admin" : ""),
+    name: user.name ?? (user.role === "admin" ? "Admin" : user.role === "finance" ? "Finance" : ""),
     branchId: user.branchId ?? undefined,
     branchName: user.branchId ? branchName(user.branchId) : "",
     status: user.status ?? "active",

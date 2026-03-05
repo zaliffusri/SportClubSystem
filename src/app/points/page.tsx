@@ -84,7 +84,7 @@ export default function PointsPage() {
         leaderboard.
       </p>
 
-      <form onSubmit={handleSubmit} className="card max-w-md space-y-4 p-6">
+      <form onSubmit={handleSubmit} className="card max-w-md space-y-4 p-4 sm:p-6">
         <div>
           <label className="mb-1 block text-sm font-medium text-slate-400">Game</label>
           <select

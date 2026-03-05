@@ -68,8 +68,8 @@ export default function JoinGamePage() {
   }
 
   return (
-    <div className="mx-auto max-w-md space-y-6">
-      <div className="card p-6">
+    <div className="mx-auto max-w-md space-y-6 px-4">
+      <div className="card p-4 sm:p-6">
         <h1 className="font-display text-xl font-semibold text-slate-100">{game.name}</h1>
         {game.date && <p className="mt-1 text-sm text-slate-500">Date: {game.date}</p>}
         {game.description && <p className="mt-2 text-slate-400">{game.description}</p>}

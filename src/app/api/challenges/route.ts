@@ -24,7 +24,7 @@ export async function GET(request: Request) {
       };
     })
   );
-  if (session.role === "admin") {
+  if (session.role === "admin" || session.role === "finance") {
     if (filter === "notifications") return NextResponse.json([]);
     return NextResponse.json(withNames);
   }

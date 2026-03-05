@@ -10,7 +10,7 @@ export async function PATCH(
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { memberId } = await params;
-  const isAdmin = session.role === "admin";
+  const isAdmin = session.role === "admin" || session.role === "finance";
   const isSelf = session.id === memberId;
 
   if (!isAdmin && !isSelf) {

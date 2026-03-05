@@ -74,7 +74,7 @@ export default function GamesPage() {
       </div>
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="card space-y-4 p-6">
+        <form onSubmit={handleSubmit} className="card space-y-4 p-4 sm:p-6">
           <h2 className="font-display text-lg font-semibold text-slate-100">New Game</h2>
           <div>
             <label className="mb-1 block text-sm font-medium text-slate-400">Game name</label>
@@ -126,23 +126,23 @@ export default function GamesPage() {
       )}
 
       <div className="card overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
+        <div className="overflow-x-auto -mx-px">
+          <table className="w-full min-w-[320px]">
             <thead>
               <tr className="border-b border-white/10 bg-white/5">
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                <th className="cell text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                   Game
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                <th className="cell text-left text-xs font-semibold uppercase tracking-wider text-slate-500 hidden sm:table-cell">
                   Type
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                <th className="cell text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                   Date
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                <th className="cell text-left text-xs font-semibold uppercase tracking-wider text-slate-500 hidden md:table-cell">
                   Description
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-slate-500">
+                <th className="cell text-right text-xs font-semibold uppercase tracking-wider text-slate-500">
                   Action
                 </th>
               </tr>
@@ -150,14 +150,14 @@ export default function GamesPage() {
             <tbody className="divide-y divide-white/5">
               {games.map((g) => (
                 <tr key={g.id} className="transition hover:bg-white/5">
-                  <td className="px-6 py-4 font-medium text-slate-200">{g.name}</td>
-                  <td className="px-6 py-4 text-slate-400">
+                  <td className="cell font-medium text-slate-200">{g.name}</td>
+                  <td className="cell text-slate-400 hidden sm:table-cell">
                     {g.type === "guessing" ? "Guessing" : g.type === "challenge" ? "Challenge" : "Standard"}
                   </td>
-                  <td className="px-6 py-4 text-slate-400">{g.date}</td>
-                  <td className="px-6 py-4 text-slate-500">{g.description ?? "—"}</td>
-                  <td className="px-6 py-4 text-right">
-                    <span className="flex flex-wrap justify-end gap-2">
+                  <td className="cell text-slate-400">{g.date}</td>
+                  <td className="cell text-slate-500 hidden md:table-cell">{g.description ?? "—"}</td>
+                  <td className="cell text-right">
+                    <span className="flex flex-wrap justify-end gap-1.5 sm:gap-2">
                       <Link
                         href={`/games/${g.id}/join-qr`}
                         className="text-primary-400 hover:underline"
@@ -195,7 +195,7 @@ export default function GamesPage() {
           </table>
         </div>
         {games.length === 0 && (
-          <div className="px-6 py-12 text-center text-slate-500">
+          <div className="cell py-12 text-center text-slate-500">
             No games yet. Add a game to start recording points.
           </div>
         )}

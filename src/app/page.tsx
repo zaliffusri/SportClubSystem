@@ -49,31 +49,31 @@ export default function HomePage() {
       </div>
 
       <div className="card overflow-hidden">
-        <div className="border-b border-white/10 bg-white/5 px-6 py-4">
-          <h2 className="font-display text-lg font-semibold text-slate-100">Rankings</h2>
+        <div className="border-b border-white/10 bg-white/5 px-3 py-3 sm:px-6 sm:py-4">
+          <h2 className="font-display text-base font-semibold text-slate-100 sm:text-lg">Rankings</h2>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full">
+        <div className="overflow-x-auto -mx-px">
+          <table className="w-full min-w-[320px]">
             <thead>
               <tr className="border-b border-white/10 bg-white/5">
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                <th className="cell text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                   Rank
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                <th className="cell text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                   Member
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                <th className="cell text-left text-xs font-semibold uppercase tracking-wider text-slate-500 hidden xs:table-cell">
                   Branch
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-slate-500">
-                  Total Points
+                <th className="cell text-right text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  Pts
                 </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
               {leaderboard.map((entry, i) => (
                 <tr key={entry.userId} className="transition hover:bg-white/5">
-                  <td className="px-6 py-4">
+                  <td className="cell">
                     <span
                       className={`inline-flex h-9 w-9 items-center justify-center rounded-lg font-display text-sm font-bold ${
                         i === 0
@@ -88,9 +88,9 @@ export default function HomePage() {
                       {i + 1}
                     </span>
                   </td>
-                  <td className="px-6 py-4 font-medium text-slate-200">{entry.userName}</td>
-                  <td className="px-6 py-4 text-slate-400">{entry.branchName ?? "—"}</td>
-                  <td className="px-6 py-4 text-right font-semibold text-primary-400">
+                  <td className="cell font-medium text-slate-200">{entry.userName}</td>
+                  <td className="cell text-slate-400">{entry.branchName ?? "—"}</td>
+                  <td className="cell text-right font-semibold text-primary-400">
                     {entry.totalPoints}
                   </td>
                 </tr>
